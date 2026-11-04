@@ -8,6 +8,8 @@ import { createSqliteProfileRepository } from "./profiles/sqlite-repository.js";
 import { createInMemorySwipeRepository } from "./swipes/repository.js";
 import { createSqliteSwipeRepository } from "./swipes/sqlite-repository.js";
 import { createSwipeService } from "./swipes/service.js";
+import { createMemegenSource, DEFAULT_MEMEGEN_BASE_URL } from "./templates/memegen.js";
+import { createTemplateService } from "./templates/service.js";
 
 const port = Number(process.env.PORT ?? 3000);
 
@@ -27,14 +29,23 @@ const catalog = createMemeCatalog();
 const swipeService = createSwipeService(catalog, swipeRepository);
 const memeService = createMemeService(catalog, createInMemoryImageStore());
 
+// Memes from templates are rendered by memegen.link. Set MEMEGEN_BASE_URL to use a self-hosted instance.
+const templateSource = createMemegenSource({
+  baseUrl: process.env.MEMEGEN_BASE_URL ?? DEFAULT_MEMEGEN_BASE_URL,
+});
+const templateService = createTemplateService(templateSource, memeService);
+
 // Set STATIC_DIR to the built frontend (frontend/dist) to serve it from this process, as the container does.
 const staticDir = process.env.STATIC_DIR;
 
-createApp(swipeService, { staticDir, memeService, profileService }).listen(port, () => {
-  console.log(`Backend listening on http://localhost:${port}`);
-  console.log(
-    databaseFile
-      ? `Swipes and profiles stored in SQLite: ${databaseFile}`
-      : "Swipes and profiles stored in memory",
-  );
-});
+createApp(swipeService, { staticDir, memeService, profileService, templateService }).listen(
+  port,
+  () => {
+    console.log(`Backend listening on http://localhost:${port}`);
+    console.log(
+      databaseFile
+        ? `Swipes and profiles stored in SQLite: ${databaseFile}`
+        : "Swipes and profiles stored in memory",
+    );
+  },
+);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { composeMemeSvg } from "../src/memes/compose.js";
+import { composeFullCardSvg, composeMemeSvg } from "../src/memes/compose.js";
 
 const image = { contentType: "image/png", data: Buffer.from([1, 2, 3]) };
 const captionLines = (svg: string) =>
@@ -42,5 +42,27 @@ describe("composeMemeSvg", () => {
 
     expect(lines.join("")).toBe("X".repeat(60));
     expect(lines.length).toBeGreaterThan(1);
+  });
+});
+
+describe("composeFullCardSvg", () => {
+  it("fills the 400x400 card with the image, with no caption band or text", () => {
+    const svg = composeFullCardSvg(image, "Prod is down / This is fine");
+
+    expect(svg).toContain('viewBox="0 0 400 400"');
+    expect(svg).toContain(
+      '<image href="data:image/png;base64,AQID" x="0" y="0" width="400" height="400" preserveAspectRatio="xMidYMid meet"/>',
+    );
+    expect(svg).toContain('<rect width="400" height="400" fill="#1e1e2e"/>');
+    expect(svg).not.toContain("<text");
+    expect(svg).not.toContain('y="270"');
+    expect(svg).toContain('<title id="t">Prod is down / This is fine</title>');
+  });
+
+  it("escapes the caption in the title", () => {
+    const svg = composeFullCardSvg(image, '</title><script>alert("x")</script>');
+
+    expect(svg).not.toContain("<script>");
+    expect(svg).toContain("&lt;/title&gt;&lt;script&gt;");
   });
 });

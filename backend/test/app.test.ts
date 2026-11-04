@@ -83,7 +83,7 @@ describe("GET /api/memes/next", () => {
     const res = await next(app, "u1");
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ meme: null });
+    expect(res.body).toEqual({ meme: null, stats: null });
   });
 });
 
@@ -95,7 +95,7 @@ describe("POST /api/swipes", () => {
     const res = await swipe(app, "u1", { memeId: meme.id, direction: "like" });
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ memeId: meme.id, direction: "like" });
+    expect(res.body).toMatchObject({ memeId: meme.id, direction: "like" });
   });
 
   it("rejects a request without a user id", async () => {
@@ -152,7 +152,7 @@ describe("POST /api/swipes", () => {
     const res = await swipe(app, "u1", { memeId: meme.id, direction: "nope" });
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ memeId: meme.id, direction: "like" });
+    expect(res.body).toMatchObject({ memeId: meme.id, direction: "like" });
     expect((await next(app, "u1")).body.meme.id).not.toBe(meme.id);
   });
 });
@@ -197,7 +197,7 @@ describe("DELETE /api/swipes", () => {
     await reset(app, "u1");
 
     expect((await next(app, "u1")).body.meme).not.toBeNull();
-    expect((await next(app, "u2")).body).toEqual({ meme: null });
+    expect((await next(app, "u2")).body).toEqual({ meme: null, stats: null });
   });
 
   it("is safe to call repeatedly", async () => {
@@ -268,5 +268,71 @@ describe("GET /api/likes", () => {
 
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ error: expect.any(String) });
+  });
+});
+
+describe("stats on GET /api/memes/next", () => {
+  it("returns how much people love the next meme", async () => {
+    const app = setup();
+    const { meme } = (await next(app, "u1")).body;
+    await swipe(app, "u2", { memeId: meme.id, direction: "like" });
+    await swipe(app, "u3", { memeId: meme.id, direction: "nope" });
+
+    const res = await next(app, "u1");
+
+    expect(res.body.meme.id).toBe(meme.id);
+    expect(res.body.stats).toEqual({ likes: 1, nopes: 1, lovePercent: 50 });
+  });
+
+  it("returns null stats when every meme is swiped", async () => {
+    const app = setup();
+    for (
+      let meme = (await next(app, "u1")).body.meme;
+      meme;
+      meme = (await next(app, "u1")).body.meme
+    ) {
+      await swipe(app, "u1", { memeId: meme.id, direction: "nope" });
+    }
+
+    expect((await next(app, "u1")).body).toEqual({ meme: null, stats: null });
+  });
+});
+
+describe("GET /api/trending", () => {
+  it("ranks liked memes from all users", async () => {
+    const app = setup();
+    const { meme } = (await next(app, "u1")).body;
+    await swipe(app, "u1", { memeId: meme.id, direction: "like" });
+    await swipe(app, "u2", { memeId: meme.id, direction: "like" });
+
+    const res = await request(app).get("/api/trending").set("X-User-Id", "u3");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      window: "all",
+      memes: [{ meme, likes: 2, nopes: 0, lovePercent: 100 }],
+    });
+  });
+
+  it("rejects a request without a user id", async () => {
+    expect((await request(setup()).get("/api/trending")).status).toBe(400);
+  });
+});
+
+describe("GET /api/pulse", () => {
+  it("counts swipes from all users in the last minute", async () => {
+    const app = setup();
+    const { meme } = (await next(app, "u1")).body;
+    await swipe(app, "u1", { memeId: meme.id, direction: "like" });
+    await swipe(app, "u2", { memeId: meme.id, direction: "nope" });
+
+    const res = await request(app).get("/api/pulse").set("X-User-Id", "u3");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ swipesPerMinute: 2 });
+  });
+
+  it("rejects a request without a user id", async () => {
+    expect((await request(setup()).get("/api/pulse")).status).toBe(400);
   });
 });

@@ -74,11 +74,12 @@ describe("SQLite profile repository on a file", () => {
 
   it("shares a database file with the swipe repository without losing swipes", () => {
     const swipes = createSqliteSwipeRepository(file);
-    swipes.add("u1", { memeId: "a", direction: "like" });
+    const swipe = { memeId: "a", direction: "like" as const, swipedAt: "2026-11-04T12:00:00.000Z" };
+    swipes.add("u1", swipe);
     const profiles = createSqliteProfileRepository(file);
     profiles.save(sara);
 
-    expect(swipes.listByUser("u1")).toEqual([{ memeId: "a", direction: "like" }]);
+    expect(swipes.listByUser("u1")).toEqual([swipe]);
     expect(profiles.findByUserId("u1")).toEqual(sara);
     swipes.close();
     profiles.close();

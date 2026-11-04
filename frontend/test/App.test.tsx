@@ -19,6 +19,17 @@ describe("App", () => {
     expect(image).toHaveAttribute("src", first.imageUrl);
   });
 
+  it("tells the user their likes are saved", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok({ meme: first })));
+
+    render(<App />);
+
+    await screen.findByRole("img", { name: first.caption });
+    expect(
+      screen.getByText("Your likes are saved, even when the app restarts."),
+    ).toBeInTheDocument();
+  });
+
   it.each([
     ["Like", "like"],
     ["Nope", "nope"],
@@ -407,5 +418,62 @@ describe("App celebrations", () => {
     await swipeAll(["Nope"]);
 
     expect(screen.getByRole("status")).toHaveTextContent("100 memes swiped!");
+  });
+});
+
+describe("create view", () => {
+  const fine = { id: "fine", name: "This is Fine", lines: 2, imageUrl: "https://memes.test/f.png" };
+
+  it("searches templates and creates a meme from the Create tab", async () => {
+    const created = { id: "upload-2", caption: "Top / Bottom", imageUrl: "/api/memes/uploads/u2" };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(ok({ meme: first }))
+      .mockResolvedValueOnce(ok({ templates: [fine] }))
+      .mockResolvedValueOnce({ ok: true, status: 201, json: async () => created })
+      .mockResolvedValueOnce(ok({ meme: created }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<App />);
+    await screen.findByRole("img", { name: first.caption });
+
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    fireEvent.click(await screen.findByRole("button", { name: "This is Fine" }));
+    fireEvent.change(screen.getByLabelText("Line 1"), { target: { value: "Top" } });
+    fireEvent.change(screen.getByLabelText("Line 2"), { target: { value: "Bottom" } });
+    fireEvent.click(screen.getByRole("button", { name: "Post meme" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Top / Bottom");
+    expect(fetchMock.mock.calls[1][0]).toBe("/api/templates?q=");
+    expect(fetchMock.mock.calls[1][1].headers["X-User-Id"]).toEqual(expect.any(String));
+    const [url, init] = fetchMock.mock.calls[2];
+    expect(url).toBe("/api/memes/from-template");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body)).toEqual({ templateId: "fine", texts: ["Top", "Bottom"] });
+
+    // The created meme is next in the pile, like a posted one.
+    fireEvent.click(screen.getByRole("button", { name: "Swipe" }));
+    expect(await screen.findByRole("img", { name: created.caption })).toBeInTheDocument();
+  });
+
+  it("shows the backend's error when the template service is unavailable", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(ok({ meme: first }))
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 502,
+          json: async () => ({
+            error: "The meme template service is unavailable, try again later",
+          }),
+        }),
+    );
+    render(<App />);
+    await screen.findByRole("img", { name: first.caption });
+
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("unavailable");
   });
 });

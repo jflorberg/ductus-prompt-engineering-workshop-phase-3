@@ -3,7 +3,7 @@
 Meme-Tinder is a proof of concept that workshop teams fork and extend: users swipe memes right (like) or left (nope). See [README.md](README.md) for requirements, the API and the quick start, and [deploy/README.md](deploy/README.md) for running in Docker or locally.
 
 ## Language
-
+update roadmap based on vision
 All documents and code should be in english
 
 ## Changelog

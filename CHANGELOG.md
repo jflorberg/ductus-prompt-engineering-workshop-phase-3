@@ -42,6 +42,7 @@
 
 ### Changed
 
+- `ROADMAP.md`: replanned the 2-hour sprint around [Vision 001](vision/001-launch.md): persistence, CI guardrails, meme stats and Trending as Must; memes per minute, swipe feedback and posting memes as Should; undo and unlike dropped
 - `MemeCard` now takes `onSwipe(direction)` and owns the Like and Nope buttons, which moved out of `App`; buttons are disabled while a swipe request is in flight (#7)
 - The plain "No more memes." text is replaced by the `EmptyState` component (#5)
 - `GET /api/memes/next` is now per user (requires `X-User-Id`) and returns `{ "meme": ... }`, with `{ "meme": null }` when all memes are swiped (#3)

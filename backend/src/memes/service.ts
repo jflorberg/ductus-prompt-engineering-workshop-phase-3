@@ -9,10 +9,12 @@ export const MAX_IMAGE_BYTES = 1024 * 1024;
 
 /** The image types users can post, with a check on the file content (not only the declared type). */
 const IMAGE_TYPES: Record<string, (data: Buffer) => boolean> = {
-  "image/png": (d) => d.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  "image/png": (d) =>
+    d.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
   "image/jpeg": (d) => d[0] === 0xff && d[1] === 0xd8 && d[2] === 0xff,
   "image/gif": (d) => d.subarray(0, 4).toString("ascii") === "GIF8",
-  "image/webp": (d) => d.subarray(0, 4).toString("ascii") === "RIFF" && d.subarray(8, 12).toString("ascii") === "WEBP",
+  "image/webp": (d) =>
+    d.subarray(0, 4).toString("ascii") === "RIFF" && d.subarray(8, 12).toString("ascii") === "WEBP",
   "image/svg+xml": (d) => /<svg[\s>]/i.test(d.subarray(0, 4096).toString("utf8")),
 };
 
@@ -42,7 +44,8 @@ function parseDataUrl(image: string): StoredImage {
   if (!match) throw new InvalidMemeError("image must be a base64 data URL");
   const [, contentType, base64] = match;
   const check = IMAGE_TYPES[contentType];
-  if (!check) throw new InvalidMemeError(`image type must be one of: ${ALLOWED_IMAGE_TYPES.join(", ")}`);
+  if (!check)
+    throw new InvalidMemeError(`image type must be one of: ${ALLOWED_IMAGE_TYPES.join(", ")}`);
   const data = Buffer.from(base64, "base64");
   if (data.length === 0) throw new InvalidMemeError("image is empty");
   if (data.length > MAX_IMAGE_BYTES) throw new InvalidMemeError("image must be 1 MB or smaller");
@@ -61,7 +64,10 @@ export function createMemeService(catalog: MemeCatalog, images: ImageStore): Mem
       const uploaded = parseDataUrl(image);
       const id = `upload-${randomUUID()}`;
       // Stored as one SVG with the caption in it, so posted memes look like the seed memes.
-      images.save(id, { contentType: "image/svg+xml", data: Buffer.from(composeMemeSvg(uploaded, trimmed)) });
+      images.save(id, {
+        contentType: "image/svg+xml",
+        data: Buffer.from(composeMemeSvg(uploaded, trimmed)),
+      });
       const meme = { id, caption: trimmed, imageUrl: `${UPLOAD_PATH}/${id}` };
       catalog.add(meme);
       return meme;

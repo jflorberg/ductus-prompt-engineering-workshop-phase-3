@@ -104,7 +104,8 @@ export function createApp(swipeService: SwipeService, options: AppOptions = {}) 
       res
         .set({
           "Content-Type": image.contentType,
-          "Content-Security-Policy": "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox",
+          "Content-Security-Policy":
+            "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox",
           "X-Content-Type-Options": "nosniff",
         })
         .send(image.data);
@@ -141,11 +142,23 @@ export function createApp(swipeService: SwipeService, options: AppOptions = {}) 
   }
 
   // Malformed JSON bodies and other client errors from middleware get a JSON error too.
-  app.use((err: { status?: number; message?: string }, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status && err.status < 500 ? err.status : 500;
-    const error = status === 413 ? "Request body too large" : status < 500 ? "Invalid request" : "Internal server error";
-    res.status(status).json({ error });
-  });
+  app.use(
+    (
+      err: { status?: number; message?: string },
+      _req: Request,
+      res: Response,
+      _next: NextFunction,
+    ) => {
+      const status = err.status && err.status < 500 ? err.status : 500;
+      const error =
+        status === 413
+          ? "Request body too large"
+          : status < 500
+            ? "Invalid request"
+            : "Internal server error";
+      res.status(status).json({ error });
+    },
+  );
 
   return app;
 }

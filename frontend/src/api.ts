@@ -54,7 +54,13 @@ export async function resetSwipes(): Promise<void> {
 }
 
 /** Image types and limits for posting a meme. They match the backend's rules. */
-export const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"];
+export const ACCEPTED_IMAGE_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+];
 export const MAX_IMAGE_BYTES = 1024 * 1024;
 export const MAX_CAPTION_LENGTH = 140;
 

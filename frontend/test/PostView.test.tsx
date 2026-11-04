@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import { PostView } from "../src/PostView";
 
 const posted = { id: "upload-1", caption: "My meme", imageUrl: "/api/memes/uploads/upload-1" };
-const image = (type = "image/png", size = 10) => new File([new Uint8Array(size)], "meme.png", { type });
+const image = (type = "image/png", size = 10) =>
+  new File([new Uint8Array(size)], "meme.png", { type });
 
 function pick(file: File) {
   fireEvent.change(screen.getByLabelText("Image"), { target: { files: [file] } });
@@ -29,13 +30,22 @@ describe("PostView", () => {
   });
 
   it("previews the picked image with the caption in a band, like the posted meme", () => {
-    vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: vi.fn(() => "blob:preview"), revokeObjectURL: vi.fn() }));
+    vi.stubGlobal(
+      "URL",
+      Object.assign(URL, {
+        createObjectURL: vi.fn(() => "blob:preview"),
+        revokeObjectURL: vi.fn(),
+      }),
+    );
     render(<PostView onPost={vi.fn()} />);
 
     pick(image());
     typeCaption("It works on my machine");
 
-    expect(screen.getByRole("img", { name: "Preview of your meme" })).toHaveAttribute("src", "blob:preview");
+    expect(screen.getByRole("img", { name: "Preview of your meme" })).toHaveAttribute(
+      "src",
+      "blob:preview",
+    );
     expect(screen.getByText("IT WORKS ON MY MACHINE")).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
@@ -91,7 +101,13 @@ describe("PostView", () => {
   });
 
   it("shows the error when posting fails and keeps the caption", async () => {
-    render(<PostView onPost={vi.fn().mockRejectedValue(new Error("Request failed (HTTP 400): caption is required"))} />);
+    render(
+      <PostView
+        onPost={vi
+          .fn()
+          .mockRejectedValue(new Error("Request failed (HTTP 400): caption is required"))}
+      />,
+    );
 
     pick(image());
     typeCaption("My meme");

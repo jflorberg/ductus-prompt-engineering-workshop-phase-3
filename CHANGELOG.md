@@ -11,6 +11,9 @@
 - Posted memes look like the seed memes: the backend combines the image and the caption into one 400x400 SVG with the caption in capitals in a dark band at the bottom (`backend/src/memes/compose.ts`)
 - Typed `postMeme()` in the API client, a `PostView` component, and service, Supertest and Testing Library tests for posting
 
+- GitHub Actions CI (`.github/workflows/ci.yml`) on pushes to `main` and on pull requests: Prettier format check, ESLint, type check (including tests), build and tests, plus a job that builds the Docker image
+- ESLint (`eslint.config.mjs`: recommended rules, typescript-eslint, React hooks, no `any`, type-only imports) and Prettier (`.prettierrc.json`, 100 columns) at the repository root; `vision/` is excluded from Prettier because the upstream repository owns it
+- Root scripts `lint`, `format`, `format:check`, `typecheck` and `check` (runs everything CI runs); `typecheck` in both workspaces, with `backend/tsconfig.check.json` so backend tests are type checked too
 - `ROADMAP.md`: a 2-hour sprint plan for a team of a frontend developer, a backend developer, a full-stack developer and a manager
 
 - 20 more memes (SVG assets and seed entries), bringing the catalog to 30
@@ -50,6 +53,10 @@
 - `MemeCatalog` has an `add` method, and `createApp` takes an optional `memeService` option that enables the post endpoints
 - Failed API requests in the frontend now include the backend's `error` message
 
+- The codebase is formatted with Prettier (formatting only, no behavior change)
+- The initial meme load in `App` no longer sets state synchronously inside `useEffect` and ignores results that arrive after unmount (found by the React hooks lint rule)
+- `CLAUDE.md` and `README.md` list the new commands; `npm run check` is now the command to run before finishing a change
+- `ROADMAP.md`: replanned the 2-hour sprint around [Vision 001](vision/001-launch.md): persistence, CI guardrails, meme stats and Trending as Must; memes per minute, swipe feedback and posting memes as Should; undo and unlike dropped
 - `MemeCard` now takes `onSwipe(direction)` and owns the Like and Nope buttons, which moved out of `App`; buttons are disabled while a swipe request is in flight (#7)
 - The plain "No more memes." text is replaced by the `EmptyState` component (#5)
 - `GET /api/memes/next` is now per user (requires `X-User-Id`) and returns `{ "meme": ... }`, with `{ "meme": null }` when all memes are swiped (#3)

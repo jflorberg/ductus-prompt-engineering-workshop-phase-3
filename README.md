@@ -25,24 +25,30 @@ Open http://localhost:5173, then swipe memes by dragging the card, with the Like
 
 ## Commands
 
-| Command         | What it does                                  |
-| --------------- | --------------------------------------------- |
-| `npm run dev`   | Starts backend and frontend in watch mode     |
-| `npm test`      | Runs all backend and frontend tests           |
-| `npm run build` | Builds both workspaces                        |
+| Command             | What it does                                                          |
+| ------------------- | --------------------------------------------------------------------- |
+| `npm run dev`       | Starts backend and frontend in watch mode                             |
+| `npm test`          | Runs all backend and frontend tests                                   |
+| `npm run build`     | Builds both workspaces                                                |
+| `npm run lint`      | Lints the repository with ESLint                                      |
+| `npm run format`    | Formats the repository with Prettier                                  |
+| `npm run typecheck` | Type checks both workspaces, including tests                          |
+| `npm run check`     | Runs everything CI runs (format check, lint, type check, build, test) |
+
+CI (GitHub Actions, [.github/workflows/ci.yml](.github/workflows/ci.yml)) runs `npm run check` steps and a Docker image build on every push to `main` and every pull request.
 
 ## API
 
 All endpoints are under `/api` and need an `X-User-Id` header (the frontend creates an anonymous id on first visit and stores it in localStorage).
 
-| Endpoint                | Description                                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `GET /api/memes/next`   | `200 { "meme": {...} }` with the next unseen meme, or `200 { "meme": null }` when all memes have been swiped |
-| `POST /api/swipes`      | Body `{ "memeId": "...", "direction": "like" \| "nope" }`. `200` with the stored swipe                       |
-| `GET /api/likes`        | `200 { "memes": [...] }` with the user's liked memes in catalog order (`[]` when nothing is liked)           |
-| `DELETE /api/swipes`    | Removes all of the user's swipes, including likes. `204 No Content`; safe to call repeatedly                 |
-| `POST /api/memes`       | Body `{ "caption": "...", "image": "data:image/png;base64,..." }`. Posts a meme first in every user's pile (newest first). The image is stored as an SVG with the caption in a band at the bottom, like the seed memes. `201` with the new meme. Captions are 1–140 characters; images are PNG, JPEG, GIF, WebP or SVG, up to 1 MB, and the content must match the type |
-| `GET /api/memes/uploads/:id` | The uploaded image (no `X-User-Id` needed). Served with a strict `Content-Security-Policy`, so scripts in an uploaded SVG never run. `404` for an unknown id |
+| Endpoint                     | Description                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/memes/next`        | `200 { "meme": {...} }` with the next unseen meme, or `200 { "meme": null }` when all memes have been swiped                                                                                                                                                                                                                                                            |
+| `POST /api/swipes`           | Body `{ "memeId": "...", "direction": "like" \| "nope" }`. `200` with the stored swipe                                                                                                                                                                                                                                                                                  |
+| `GET /api/likes`             | `200 { "memes": [...] }` with the user's liked memes in catalog order (`[]` when nothing is liked)                                                                                                                                                                                                                                                                      |
+| `DELETE /api/swipes`         | Removes all of the user's swipes, including likes. `204 No Content`; safe to call repeatedly                                                                                                                                                                                                                                                                            |
+| `POST /api/memes`            | Body `{ "caption": "...", "image": "data:image/png;base64,..." }`. Posts a meme first in every user's pile (newest first). The image is stored as an SVG with the caption in a band at the bottom, like the seed memes. `201` with the new meme. Captions are 1–140 characters; images are PNG, JPEG, GIF, WebP or SVG, up to 1 MB, and the content must match the type |
+| `GET /api/memes/uploads/:id` | The uploaded image (no `X-User-Id` needed). Served with a strict `Content-Security-Policy`, so scripts in an uploaded SVG never run. `404` for an unknown id                                                                                                                                                                                                            |
 
 Errors are JSON `{ "error": "..." }`: `400` for a missing user id, missing meme id, invalid direction or an invalid posted meme, `413` for a request body over 2 MB, `404` for an unknown meme id. Swiping the same meme twice is idempotent: the first swipe is kept.
 

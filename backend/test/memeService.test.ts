@@ -19,7 +19,11 @@ describe("meme service", () => {
   it("returns the posted meme with a trimmed caption and an image url", () => {
     const meme = setup().memes.postMeme({ caption: "  Mine  ", image: svg });
 
-    expect(meme).toEqual({ id: expect.stringMatching(/^upload-/), caption: "Mine", imageUrl: `/api/memes/uploads/${meme.id}` });
+    expect(meme).toEqual({
+      id: expect.stringMatching(/^upload-/),
+      caption: "Mine",
+      imageUrl: `/api/memes/uploads/${meme.id}`,
+    });
   });
 
   it("stores an SVG with the uploaded image and the caption in it, like the seed memes", () => {
@@ -48,17 +52,34 @@ describe("meme service", () => {
 
   it("gives each posted meme its own id", () => {
     const { memes } = setup();
-    expect(memes.postMeme({ caption: "x", image: svg }).id).not.toBe(memes.postMeme({ caption: "x", image: svg }).id);
+    expect(memes.postMeme({ caption: "x", image: svg }).id).not.toBe(
+      memes.postMeme({ caption: "x", image: svg }).id,
+    );
   });
 
   it.each([
     ["an empty caption", { caption: "   ", image: svg }],
     ["a too long caption", { caption: "x".repeat(141), image: svg }],
     ["an image that is not a data URL", { caption: "x", image: "https://example.com/a.png" }],
-    ["an image type that is not allowed", { caption: "x", image: `data:text/html;base64,${Buffer.from("<svg>").toString("base64")}` }],
-    ["content that does not match the type", { caption: "x", image: `data:image/png;base64,${Buffer.from("not a png").toString("base64")}` }],
+    [
+      "an image type that is not allowed",
+      { caption: "x", image: `data:text/html;base64,${Buffer.from("<svg>").toString("base64")}` },
+    ],
+    [
+      "content that does not match the type",
+      {
+        caption: "x",
+        image: `data:image/png;base64,${Buffer.from("not a png").toString("base64")}`,
+      },
+    ],
     ["an empty image", { caption: "x", image: "data:image/png;base64," }],
-    ["an image over 1 MB", { caption: "x", image: `data:image/svg+xml;base64,${Buffer.from(`<svg>${" ".repeat(MAX_IMAGE_BYTES)}</svg>`).toString("base64")}` }],
+    [
+      "an image over 1 MB",
+      {
+        caption: "x",
+        image: `data:image/svg+xml;base64,${Buffer.from(`<svg>${" ".repeat(MAX_IMAGE_BYTES)}</svg>`).toString("base64")}`,
+      },
+    ],
   ])("rejects %s", (_name, input) => {
     const { memes, swipes } = setup();
 

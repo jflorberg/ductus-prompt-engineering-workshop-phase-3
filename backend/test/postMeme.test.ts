@@ -25,7 +25,11 @@ describe("POST /api/memes", () => {
     const res = await post(setup(), { caption: "My meme", image: svg });
 
     expect(res.status).toBe(201);
-    expect(res.body).toEqual({ id: expect.any(String), caption: "My meme", imageUrl: expect.stringContaining(res.body.id) });
+    expect(res.body).toEqual({
+      id: expect.any(String),
+      caption: "My meme",
+      imageUrl: expect.stringContaining(res.body.id),
+    });
   });
 
   it("shows the posted meme to other users", async () => {
@@ -41,7 +45,10 @@ describe("POST /api/memes", () => {
     const app = setup();
     const { body: meme } = await post(app, { caption: "My meme", image: svg });
 
-    const swipe = await request(app).post("/api/swipes").set("X-User-Id", "u2").send({ memeId: meme.id, direction: "like" });
+    const swipe = await request(app)
+      .post("/api/swipes")
+      .set("X-User-Id", "u2")
+      .send({ memeId: meme.id, direction: "like" });
     const likes = await request(app).get("/api/likes").set("X-User-Id", "u2");
 
     expect(swipe.status).toBe(200);
@@ -80,7 +87,11 @@ describe("POST /api/memes", () => {
     ["a missing caption", { image: svg }, /caption/],
     ["a blank caption", { caption: "  ", image: svg }, /caption/],
     ["a missing image", { caption: "x" }, /image/],
-    ["an image that is not allowed", { caption: "x", image: "data:text/plain;base64,aGk=" }, /image type/],
+    [
+      "an image that is not allowed",
+      { caption: "x", image: "data:text/plain;base64,aGk=" },
+      /image type/,
+    ],
   ])("returns 400 for %s", async (_name, body, error) => {
     const res = await post(setup(), body);
 
@@ -89,7 +100,10 @@ describe("POST /api/memes", () => {
   });
 
   it("returns 413 with a JSON error for a body over 2 MB", async () => {
-    const res = await post(setup(), { caption: "x", image: `data:image/png;base64,${"A".repeat(3 * 1024 * 1024)}` });
+    const res = await post(setup(), {
+      caption: "x",
+      image: `data:image/png;base64,${"A".repeat(3 * 1024 * 1024)}`,
+    });
 
     expect(res.status).toBe(413);
     expect(res.body.error).toEqual(expect.any(String));

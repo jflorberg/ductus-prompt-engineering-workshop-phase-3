@@ -1,0 +1,8 @@
+dist
+node_modules
+.vite
+package-lock.json
+backend/assets
+.claude
+# Owned by the upstream repository (jflorberg); keep as is to avoid merge conflicts
+vision

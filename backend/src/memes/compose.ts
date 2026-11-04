@@ -6,7 +6,10 @@ const BAND_TOP = 270;
 const BAND_HEIGHT = SIZE - BAND_TOP;
 
 const escapeXml = (text: string) =>
-  text.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c] ?? c);
+  text.replace(
+    /[<>&'"]/g,
+    (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c] ?? c,
+  );
 
 /** Splits text into lines of at most maxChars, breaking at spaces (and inside words that are too long). */
 function wrap(text: string, maxChars: number): string[] {
@@ -40,7 +43,11 @@ function layoutCaption(caption: string) {
   }
   const fontSize = 15;
   const lineHeight = 19;
-  return { fontSize, lineHeight, lines: wrap(caption.toUpperCase(), 38).slice(0, Math.floor((BAND_HEIGHT - 16) / lineHeight)) };
+  return {
+    fontSize,
+    lineHeight,
+    lines: wrap(caption.toUpperCase(), 38).slice(0, Math.floor((BAND_HEIGHT - 16) / lineHeight)),
+  };
 }
 
 /**

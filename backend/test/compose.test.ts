@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { composeMemeSvg } from "../src/memes/compose.js";
 
 const image = { contentType: "image/png", data: Buffer.from([1, 2, 3]) };
-const captionLines = (svg: string) => [...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map((m) => m[1]);
+const captionLines = (svg: string) =>
+  [...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map((m) => m[1]);
 
 describe("composeMemeSvg", () => {
   it("embeds the image and puts the caption in capitals in the bottom band", () => {
@@ -11,7 +12,7 @@ describe("composeMemeSvg", () => {
     expect(svg).toContain('href="data:image/png;base64,AQID"');
     expect(svg).toContain('<rect y="270" width="400" height="130"');
     expect(captionLines(svg)).toEqual(["IT WORKS ON MY MACHINE"]);
-    expect(svg).toContain("<title id=\"t\">It works on my machine</title>");
+    expect(svg).toContain('<title id="t">It works on my machine</title>');
   });
 
   it("escapes the caption so it cannot inject markup", () => {
@@ -22,10 +23,13 @@ describe("composeMemeSvg", () => {
   });
 
   it("wraps a long caption over several lines that all fit in the band", () => {
-    const caption = "Nothing is as permanent as a temporary fix, especially the one from 2016 that nobody dares to touch any more at all";
+    const caption =
+      "Nothing is as permanent as a temporary fix, especially the one from 2016 that nobody dares to touch any more at all";
 
     const lines = captionLines(composeMemeSvg(image, caption));
-    const ys = [...composeMemeSvg(image, caption).matchAll(/<text x="200" y="(\d+)"/g)].map((m) => Number(m[1]));
+    const ys = [...composeMemeSvg(image, caption).matchAll(/<text x="200" y="(\d+)"/g)].map((m) =>
+      Number(m[1]),
+    );
 
     expect(lines.length).toBeGreaterThan(1);
     expect(lines.join(" ")).toBe(caption.toUpperCase());

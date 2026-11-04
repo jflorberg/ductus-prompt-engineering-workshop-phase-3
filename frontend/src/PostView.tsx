@@ -16,30 +16,32 @@ export function PostView({ onPost }: PostViewProps) {
   const [posted, setPosted] = useState<Meme | null>(null);
   const [formKey, setFormKey] = useState(0);
 
+  // Revoke the preview's object URL when it is replaced or the view unmounts.
   useEffect(() => {
-    if (!file || !URL.createObjectURL) {
-      setPreview(null);
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    if (!preview) return;
+    return () => URL.revokeObjectURL(preview);
+  }, [preview]);
+
+  /** Sets the picked file and its preview URL together (in event handlers, not in an effect). */
+  function chooseFile(next: File | null) {
+    setFile(next);
+    setPreview(next && URL.createObjectURL ? URL.createObjectURL(next) : null);
+  }
 
   function pickFile(picked: File | null) {
     setPosted(null);
     setError(null);
     if (picked && !ACCEPTED_IMAGE_TYPES.includes(picked.type)) {
       setError("Pick a PNG, JPEG, GIF, WebP or SVG image.");
-      setFile(null);
+      chooseFile(null);
       return;
     }
     if (picked && picked.size > MAX_IMAGE_BYTES) {
       setError("The image must be 1 MB or smaller.");
-      setFile(null);
+      chooseFile(null);
       return;
     }
-    setFile(picked);
+    chooseFile(picked);
   }
 
   async function submit(event: FormEvent) {
@@ -57,7 +59,7 @@ export function PostView({ onPost }: PostViewProps) {
     setPosting(true);
     try {
       setPosted(await onPost(caption.trim(), file));
-      setFile(null);
+      chooseFile(null);
       setCaption("");
       setFormKey((key) => key + 1);
     } catch (err) {

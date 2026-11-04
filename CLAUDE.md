@@ -31,16 +31,20 @@ Frontend: `App.tsx` owns the state and the views, `MemeCard.tsx` handles swiping
 
 Run from the repository root.
 
-| Command | What it does |
-| --- | --- |
-| `npm install` | Installs all workspaces |
-| `npm run dev` | Backend and frontend in watch mode (open http://localhost:5173) |
-| `npm test` | All backend and frontend tests (Vitest) |
-| `npm run build` | Builds both workspaces (type checks too) |
-| `npm test -w backend` / `npm test -w frontend` | Tests for one workspace |
-| `npx vitest run test/service.test.ts` (inside a workspace folder) | One test file |
+| Command                                                           | What it does                                                    |
+| ----------------------------------------------------------------- | --------------------------------------------------------------- |
+| `npm install`                                                     | Installs all workspaces                                         |
+| `npm run dev`                                                     | Backend and frontend in watch mode (open http://localhost:5173) |
+| `npm test`                                                        | All backend and frontend tests (Vitest)                         |
+| `npm run build`                                                   | Builds both workspaces (type checks too)                        |
+| `npm test -w backend` / `npm test -w frontend`                    | Tests for one workspace                                         |
+| `npx vitest run test/service.test.ts` (inside a workspace folder) | One test file                                                   |
+| `npm run lint`                                                    | ESLint on the whole repository                                  |
+| `npm run format` / `npm run format:check`                         | Formats with Prettier / checks formatting only                  |
+| `npm run typecheck`                                               | Type checks both workspaces, including tests                    |
+| `npm run check`                                                   | Everything CI runs: format check, lint, type check, build, test |
 
-Run `npm test` and `npm run build` before you finish a change.
+Run `npm run check` before you finish a change. CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the same steps on every push to `main` and every pull request, plus a Docker image build, so a change that fails locally will fail there too. Fix lint errors instead of disabling rules, and run `npm run format` rather than formatting by hand.
 
 ## Conventions
 
@@ -53,4 +57,4 @@ Run `npm test` and `npm run build` before you finish a change.
   - New React component: a new file in `frontend/src/`. Calls to the backend go through a typed function in `frontend/src/api.ts`.
 - Tests go in the workspace's `test/` folder as `<name>.test.ts(x)` and test behavior through the public interface: service tests without HTTP, endpoint tests with Supertest (see `backend/test/app.test.ts`), component tests with Testing Library. Add or update tests with every change.
 - Errors from the API are JSON `{ "error": "..." }`.
-- Do not add dependencies or tooling (such as a linter) without a reason in the task.
+- Do not add dependencies or tooling without a reason in the task. ESLint and Prettier are configured at the root (`eslint.config.mjs`, `.prettierrc.json`); change their rules only with a reason.

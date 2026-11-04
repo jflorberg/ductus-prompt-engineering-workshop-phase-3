@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../src/App";
 
 const first = { id: "m1", caption: "It works on my machine", imageUrl: "/api/memes/images/m1.svg" };
@@ -293,5 +293,72 @@ describe("post view", () => {
     fireEvent.click(screen.getByRole("button", { name: "Post meme" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("not a valid image/png");
+  });
+});
+
+describe("App celebrations", () => {
+  const memes = Array.from({ length: 7 }, (_, i) => ({
+    id: `m${i}`,
+    caption: `Meme ${i}`,
+    imageUrl: `/api/memes/images/m${i}.svg`,
+  }));
+
+  /** A backend that serves the memes in order and accepts every swipe. */
+  function stubBackend() {
+    let next = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) =>
+        url === "/api/swipes" ? ok({}) : ok({ meme: memes[next++] ?? null }),
+      ),
+    );
+  }
+
+  async function swipeAll(directions: string[]) {
+    for (const [i, direction] of directions.entries()) {
+      await screen.findByRole("img", { name: memes[i].caption });
+      fireEvent.click(screen.getByRole("button", { name: direction }));
+    }
+    await screen.findByRole("img", { name: memes[directions.length].caption });
+  }
+
+  // A fresh storage per test, so the swipe count never leaks between tests.
+  let storage: Map<string, string>;
+  beforeEach(() => {
+    storage = new Map();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+    });
+  });
+
+  it("celebrates 3 likes in a row", async () => {
+    stubBackend();
+    render(<App />);
+
+    await swipeAll(["Like", "Like"]);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Like" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("3 likes in a row!");
+  });
+
+  it("starts the streak over after a nope", async () => {
+    stubBackend();
+    render(<App />);
+
+    await swipeAll(["Like", "Like", "Nope", "Like", "Like"]);
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("celebrates the 100th swipe in this browser", async () => {
+    storage.set("meme-tinder-swipe-count", "99");
+    stubBackend();
+    render(<App />);
+
+    await swipeAll(["Nope"]);
+
+    expect(screen.getByRole("status")).toHaveTextContent("100 memes swiped!");
   });
 });

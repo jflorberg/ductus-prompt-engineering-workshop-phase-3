@@ -49,3 +49,13 @@ DATABASE_FILE=data/swipes.db npm run dev -w backend
 ```
 
 The folder must exist; the file and table are created on first start. SQLite comes from Node's built-in `node:sqlite` module (Node 22.13 or newer, no extra dependency). Node may print an `ExperimentalWarning` for it on startup; that is expected.
+
+## Meme templates
+
+The Create tab (and the MCP server, see the root [README.md](../README.md#agent-mcp)) renders memes from templates with [memegen.link](https://memegen.link). The backend calls it at `https://api.memegen.link` by default. Set `MEMEGEN_BASE_URL` to use another instance, for example a self-hosted one:
+
+```bash
+MEMEGEN_BASE_URL=http://localhost:5000 npm run dev -w backend
+```
+
+This feature needs outbound internet access from the backend (or the container). Without it, the Create tab and the MCP tools show "The meme template service is unavailable" and the rest of the app keeps working. With Docker Compose, pass the variable under `environment:` in `deploy/docker-compose.yml`.

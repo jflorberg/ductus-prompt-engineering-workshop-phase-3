@@ -90,6 +90,32 @@ export async function resetSwipes(): Promise<void> {
   await request("/api/swipes", { method: "DELETE" });
 }
 
+/** A person as other users see them. The id is public; the secret user id is never in it. */
+export interface Profile {
+  id: string;
+  nickname: string;
+  emoji: string;
+  bot: boolean;
+}
+
+export const MAX_NICKNAME_LENGTH = 30;
+
+/** The current user's profile. The backend creates it on the first call. */
+export async function fetchMe(): Promise<Profile> {
+  const { profile } = await request<{ profile: Profile }>("/api/me");
+  return profile;
+}
+
+/** Changes the current user's nickname and emoji. Resolves to the updated profile. */
+export async function updateMe(nickname: string, emoji: string): Promise<Profile> {
+  const { profile } = await request<{ profile: Profile }>("/api/me", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nickname, emoji }),
+  });
+  return profile;
+}
+
 /** Image types and limits for posting a meme. They match the backend's rules. */
 export const ACCEPTED_IMAGE_TYPES = [
   "image/png",
@@ -116,5 +142,42 @@ export async function postMeme(caption: string, image: File): Promise<Meme> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ caption, image: await readAsDataUrl(image) }),
+  });
+}
+
+/** A meme template, for example "This is Fine". */
+export interface Template {
+  id: string;
+  name: string;
+  /** How many text lines the template takes, top to bottom. */
+  lines: number;
+  /** The blank template image, for thumbnails. */
+  imageUrl: string;
+}
+
+/** The longest text for one template line. It matches the backend's rule. */
+export const MAX_TEMPLATE_TEXT_LENGTH = 100;
+
+/** Templates matching the query (the first templates when it is empty). */
+export async function searchTemplates(q: string): Promise<Template[]> {
+  const { templates } = await request<{ templates: Template[] }>(
+    `/api/templates?${new URLSearchParams({ q })}`,
+  );
+  return templates;
+}
+
+/** The URL of a rendered preview, for an <img src>. One text per line, top to bottom. */
+export function templatePreviewUrl(templateId: string, texts: string[]): string {
+  const params = new URLSearchParams();
+  for (const text of texts) params.append("text", text);
+  return `/api/templates/${encodeURIComponent(templateId)}/preview?${params}`;
+}
+
+/** Creates a meme from a template. It is added to every user's pile. Resolves to the created meme. */
+export async function postMemeFromTemplate(templateId: string, texts: string[]): Promise<Meme> {
+  return request<Meme>("/api/memes/from-template", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ templateId, texts }),
   });
 }

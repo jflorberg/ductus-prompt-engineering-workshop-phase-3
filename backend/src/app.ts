@@ -3,6 +3,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { IMAGE_PATH } from "./memes/catalog.js";
 import { InvalidMemeError, UPLOAD_PATH, type MemeService } from "./memes/service.js";
+import { InvalidProfileError, type ProfileService } from "./profiles/service.js";
+import { TemplateSourceError } from "./templates/source.js";
+import {
+  InvalidTemplateTextError,
+  UnknownTemplateError,
+  type TemplateService,
+} from "./templates/service.js";
 import { DIRECTIONS, type Direction } from "./swipes/repository.js";
 import { UnknownMemeError, type SwipeService } from "./swipes/service.js";
 
@@ -27,7 +34,14 @@ export interface AppOptions {
   staticDir?: string;
   /** Enables posting memes (POST /api/memes) and serving uploaded images. */
   memeService?: MemeService;
+  /** Enables profiles (GET and PUT /api/me). */
+  profileService?: ProfileService;
+  /** Enables creating memes from templates (GET /api/templates, preview, POST /api/memes/from-template). */
+  templateService?: TemplateService;
 }
+
+/** Shown for every provider failure. It never includes provider URLs or stack traces. */
+const TEMPLATE_UNAVAILABLE = "The meme template service is unavailable, try again later";
 
 export function createApp(swipeService: SwipeService, options: AppOptions = {}) {
   const app = express();
@@ -122,6 +136,123 @@ export function createApp(swipeService: SwipeService, options: AppOptions = {}) 
           "X-Content-Type-Options": "nosniff",
         })
         .send(image.data);
+    });
+  }
+
+  const { profileService } = options;
+  if (profileService) {
+    // 200 with { profile }. The first call creates the profile, so there is no sign-up step.
+    app.get("/api/me", (req, res) => {
+      const userId = requireUserId(req, res);
+      if (!userId) return;
+      res.json({ profile: profileService.getOrCreate(userId) });
+    });
+
+    // 200 with { profile } after changing the nickname and emoji.
+    app.put("/api/me", (req, res) => {
+      const userId = requireUserId(req, res);
+      if (!userId) return;
+      const { nickname, emoji } = req.body ?? {};
+      if (typeof nickname !== "string") {
+        res.status(400).json({ error: "nickname is required" });
+        return;
+      }
+      if (typeof emoji !== "string") {
+        res.status(400).json({ error: "emoji is required" });
+        return;
+      }
+      try {
+        res.json({ profile: profileService.update(userId, { nickname, emoji }) });
+      } catch (err) {
+        if (err instanceof InvalidProfileError) {
+          res.status(400).json({ error: err.message });
+          return;
+        }
+        throw err;
+      }
+    });
+  }
+
+  const { templateService } = options;
+  if (templateService) {
+    // 200 with { templates }: templates matching q (all templates when q is empty), at most 24.
+    app.get("/api/templates", async (req, res) => {
+      const userId = requireUserId(req, res);
+      if (!userId) return;
+      const q = typeof req.query.q === "string" ? req.query.q : "";
+      try {
+        const templates = await templateService.search(q);
+        res.json({
+          templates: templates.map(({ id, name, lines, imageUrl }) => ({
+            id,
+            name,
+            lines,
+            imageUrl,
+          })),
+        });
+      } catch (err) {
+        if (err instanceof TemplateSourceError) {
+          res.status(502).json({ error: TEMPLATE_UNAVAILABLE });
+          return;
+        }
+        throw err;
+      }
+    });
+
+    // 200 with the rendered image. No X-User-Id, because it is used as an <img src>.
+    // One text query parameter per line, top to bottom.
+    app.get("/api/templates/:id/preview", async (req, res) => {
+      const { text } = req.query;
+      const texts = text === undefined ? [] : Array.isArray(text) ? text : [text];
+      try {
+        const image = await templateService.preview(req.params.id, texts);
+        res
+          .set({
+            "Content-Type": image.contentType,
+            "X-Content-Type-Options": "nosniff",
+            "Cache-Control": "public, max-age=3600",
+          })
+          .send(image.data);
+      } catch (err) {
+        if (err instanceof UnknownTemplateError) {
+          res.status(404).json({ error: err.message });
+          return;
+        }
+        if (err instanceof InvalidTemplateTextError) {
+          res.status(400).json({ error: err.message });
+          return;
+        }
+        if (err instanceof TemplateSourceError) {
+          res.status(502).json({ error: TEMPLATE_UNAVAILABLE });
+          return;
+        }
+        throw err;
+      }
+    });
+
+    // 201 with the new meme. It is added first in every user's pile, like a posted meme.
+    app.post("/api/memes/from-template", async (req, res) => {
+      const userId = requireUserId(req, res);
+      if (!userId) return;
+      const { templateId, texts } = req.body ?? {};
+      if (typeof templateId !== "string" || !templateId) {
+        res.status(400).json({ error: "templateId is required" });
+        return;
+      }
+      try {
+        res.status(201).json(await templateService.createMeme(templateId, texts));
+      } catch (err) {
+        if (err instanceof UnknownTemplateError || err instanceof InvalidTemplateTextError) {
+          res.status(400).json({ error: err.message });
+          return;
+        }
+        // The caption is checked before rendering, so an invalid meme here means a bad image from the provider.
+        if (err instanceof TemplateSourceError || err instanceof InvalidMemeError) {
+          res.status(502).json({ error: TEMPLATE_UNAVAILABLE });
+          return;
+        }
+        throw err;
+      }
     });
   }
 

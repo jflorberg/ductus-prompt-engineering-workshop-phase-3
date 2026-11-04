@@ -6,9 +6,21 @@
 
 ### Added
 
+- Profiles (Vision 002, Big Bet 1 "Who am I?"): every user gets a profile with a nickname and an emoji, created automatically with a random nickname ("Curious Otter") on the first visit, so there is no sign-up step. The existing anonymous user id stays the key, so nobody loses their swipes or likes. A profile has a separate public id, so the secret user id is never shown to other users
+- `GET /api/me` and `PUT /api/me` (nickname 1–30 characters, exactly one emoji), a profile service (`backend/src/profiles/service.ts`) and a `ProfileRepository` with in-memory and SQLite implementations; with `DATABASE_FILE` set, profiles are stored in the same SQLite file as the swipes
+- A "Me" tab (`ProfileView`) to change the nickname and pick an emoji, typed `fetchMe()` and `updateMe()` in the API client, and service, repository, Supertest and Testing Library tests
+
 - Feel the swipe (Big Bet 4): a LIKE or NOPE stamp that fades in while dragging and is stamped on release, button click or arrow key; the swiped card flies off the screen (300 ms) before the swipe is sent, and the next card arrives with a bounce. CSS only, and no animation when the user prefers reduced motion
 - Celebrations with CSS fireworks (`Celebration` component, explosions of sparks around the screen): on every 3 likes in a row, and on every 100th swipe in this browser (counted in localStorage by `swipeCount.ts`). The fireworks are left out when the user prefers reduced motion
 - Testing Library tests for the stamp, the fly-out, the streak, the 100th swipe and the celebration
+
+- `docs/specs/meme-generator.md`: the spec for creating memes from templates (memegen.link) in a new "Create" tab and through an MCP server for Claude Code and Claude Desktop
+
+- Meme generator backend: `GET /api/templates`, `GET /api/templates/:id/preview` and `POST /api/memes/from-template`. Templates come from memegen.link behind a `TemplateSource` interface (`backend/src/templates/`), cached for 24 hours, with a 5 second timeout and a `502` "unavailable" error when the provider fails. Set `MEMEGEN_BASE_URL` to use another instance. Created memes go first in every pile, stored by the new `postCaptionedMeme` as a full-card SVG (`composeFullCardSvg`) with no caption band; `POST /api/memes` is unchanged
+
+- Meme generator "Create" tab: search templates, pick one, type a line per template line with a live preview, and post it (`TemplateView.tsx`, `searchTemplates`, `templatePreviewUrl` and `postMemeFromTemplate` in `api.ts`)
+
+- MCP server (`mcp/` workspace) with `search_templates` and `create_meme` tools, so Claude Code or Claude Desktop can create memes through the API. New dependencies `@modelcontextprotocol/sdk` and `zod`, used only by `mcp/`. The Dockerfile copies `mcp/package.json` so `npm ci` matches the lockfile
 
 - SQLite persistence for swipes: `createSqliteSwipeRepository` in `backend/src/swipes/sqlite-repository.ts` using Node's built-in `node:sqlite` (no new dependency), enabled with the `DATABASE_FILE` env var (in-memory stays the default); the Docker image stores the database on a `meme-data` volume so likes survive restarts
 
@@ -59,6 +71,9 @@
 - `.nvmrc` and `engines` requiring Node 22+ and npm 10+; README with requirements and quick start (#2)
 
 ### Changed
+
+- `ROADMAP.md`: the product context is updated for Vision 002 (profiles, Big Bet 4 done, the meme generator, a "secret stays secret" principle) and a Vision 002 plan ("It's a Match!") is added: scope and status, answers to the founder's open questions (privacy, bots so there is always someone to match with, minimum shared swipes, "Hot or not" stays), the compatibility score, passwordless login on another device with a one-time pairing code, the API contract and the plan per role
+- Claude Code project settings (`.claude/settings.json`): `curl` moves from deny to ask, `git pull`/`git fetch` are ask rules, and `api.memegen.link` is in the sandbox's allowed domains, so the template provider can be checked from Claude Code
 
 - `MemeCatalog` has an `add` method, and `createApp` takes an optional `memeService` option that enables the post endpoints
 - Failed API requests in the frontend now include the backend's `error` message

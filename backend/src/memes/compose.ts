@@ -74,3 +74,19 @@ export function composeMemeSvg(image: StoredImage, caption: string): string {
     `</svg>`,
   ].join("\n");
 }
+
+/**
+ * Builds a meme SVG for an image that already has its text on it (a rendered template):
+ * the image fills the 400x400 card on a dark background, with no caption band and no text overlay.
+ * The caption is only the accessible title.
+ */
+export function composeFullCardSvg(image: StoredImage, caption: string): string {
+  const href = `data:${image.contentType};base64,${image.data.toString("base64")}`;
+  return [
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SIZE} ${SIZE}" role="img" aria-labelledby="t">`,
+    `<title id="t">${escapeXml(caption)}</title>`,
+    `<rect width="${SIZE}" height="${SIZE}" fill="#1e1e2e"/>`,
+    `<image href="${href}" x="0" y="0" width="${SIZE}" height="${SIZE}" preserveAspectRatio="xMidYMid meet"/>`,
+    `</svg>`,
+  ].join("\n");
+}

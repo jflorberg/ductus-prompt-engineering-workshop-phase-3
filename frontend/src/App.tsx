@@ -11,12 +11,19 @@ import {
   type MemeStats,
   type Trending,
 } from "./api";
+import { Celebration } from "./Celebration";
 import { EmptyState } from "./EmptyState";
 import { LikesView } from "./LikesView";
 import { MemeCard } from "./MemeCard";
 import { PostView } from "./PostView";
 import { PulseCounter } from "./PulseCounter";
 import { TrendingView } from "./TrendingView";
+import { countSwipe } from "./swipeCount";
+
+/** Likes in a row that earn fireworks. */
+export const LIKE_STREAK = 3;
+/** Every this many swipes (per browser) earns a celebration. */
+export const SWIPE_MILESTONE = 100;
 
 type View = "swipe" | "likes" | "trending" | "post";
 
@@ -29,6 +36,9 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [swiping, setSwiping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [likeStreak, setLikeStreak] = useState(0);
+  const [celebration, setCelebration] = useState<string | null>(null);
+  const endCelebration = useCallback(() => setCelebration(null), []);
 
   const load = useCallback(async () => {
     setError(null);
@@ -102,11 +112,22 @@ export function App() {
     setSwiping(true);
     try {
       await sendSwipe(meme.id, direction);
+      celebrate(direction);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setSwiping(false);
+    }
+  }
+
+  function celebrate(direction: Direction) {
+    const total = countSwipe();
+    const streak = direction === "like" ? likeStreak + 1 : 0;
+    setLikeStreak(streak);
+    if (total % SWIPE_MILESTONE === 0) setCelebration(`${total} memes swiped! You legend.`);
+    else if (streak > 0 && streak % LIKE_STREAK === 0) {
+      setCelebration(`${streak} likes in a row! You're on fire.`);
     }
   }
 
@@ -159,6 +180,7 @@ export function App() {
           Post
         </button>
       </nav>
+      {celebration && <Celebration message={celebration} onDone={endCelebration} />}
       {error && <p role="alert">Something went wrong: {error}. Is the backend running?</p>}
       {view === "post" && <PostView onPost={postMeme} />}
       {view === "likes" && !error && (likes ? <LikesView memes={likes} /> : <p>Loading…</p>)}

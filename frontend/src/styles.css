@@ -123,6 +123,72 @@ nav button[aria-current="page"] {
   transition: none;
 }
 
+/* The swiped card flies off the screen; keep in sync with EXIT_DURATION_MS in MemeCard.tsx. */
+.meme-card.leaving {
+  opacity: 0;
+  transition:
+    transform 0.3s ease-in,
+    opacity 0.3s ease-in;
+}
+
+/* The next card arrives with a little bounce. On a wrapper, so it never fights the drag transform. */
+.card-enter {
+  animation: card-enter 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.meme-card {
+  position: relative;
+}
+
+.stamp {
+  position: absolute;
+  top: 1.5rem;
+  padding: 0.25rem 0.75rem;
+  border: 4px solid currentColor;
+  border-radius: 8px;
+  font-family: Impact, "Arial Black", sans-serif;
+  font-size: 2.5rem;
+  letter-spacing: 0.1em;
+  background: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+}
+
+.stamp-like {
+  left: 1.25rem;
+  color: #2e9e5b;
+  transform: rotate(-15deg);
+}
+
+.stamp-nope {
+  right: 1.25rem;
+  color: #d64545;
+  transform: rotate(15deg);
+}
+
+.stamp.stamped {
+  animation: stamp-in 0.15s ease-out;
+}
+
+@keyframes stamp-in {
+  from {
+    scale: 1.6;
+  }
+  to {
+    scale: 1;
+  }
+}
+
 .meme-card img {
   display: block;
   width: 100%;
@@ -509,4 +575,105 @@ nav button[aria-current="page"] {
 .post-view button[type="submit"]:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.celebration-message {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  z-index: 11;
+  margin: 0;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(34, 34, 34, 0.9);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: celebration-pop 0.3s ease-out;
+}
+
+@keyframes celebration-pop {
+  from {
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.fireworks {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* One explosion: a bright flash in the middle, with sparks flying out in a circle. */
+.firework {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.firework::before {
+  content: "";
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--color) 40%, transparent 70%);
+  animation: firework-flash 0.4s ease-out var(--delay) both;
+}
+
+.firework span {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--color);
+  box-shadow: 0 0 6px 2px var(--color);
+  animation: firework-spark 1s ease-out var(--delay) both;
+}
+
+@keyframes firework-flash {
+  from {
+    opacity: 1;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+}
+
+@keyframes firework-spark {
+  from {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateX(0) scale(1.4);
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(var(--distance)) scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meme-card,
+  .meme-card.leaving {
+    transition: none;
+  }
+
+  .card-enter,
+  .stamp.stamped,
+  .celebration-message {
+    animation: none;
+  }
 }

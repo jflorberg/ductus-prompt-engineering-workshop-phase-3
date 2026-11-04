@@ -1,27 +1,32 @@
 # Build context is the repository root (see docker-compose.yml).
 
-# --- Build stage: install everything and build both workspaces ---
+# --- Build stage: install everything and build the backend and frontend ---
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/
 COPY frontend/package.json frontend/
+COPY mcp/package.json mcp/
 RUN npm ci
 COPY backend backend
 COPY frontend frontend
-RUN npm run build
+# The image does not ship the MCP server, so only its package.json is copied (npm ci needs it for the lockfile).
+RUN npm run build -w backend -w frontend
 
 # --- Runtime stage: production dependencies, built backend and built frontend ---
 FROM node:22-alpine
-ENV NODE_ENV=production PORT=3000 STATIC_DIR=/app/frontend/dist
+ENV NODE_ENV=production PORT=3000 STATIC_DIR=/app/frontend/dist DATABASE_FILE=/app/data/swipes.db
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/
 COPY frontend/package.json frontend/
+COPY mcp/package.json mcp/
 RUN npm ci --omit=dev --workspace backend --include-workspace-root=false
 COPY --from=build /app/backend/dist backend/dist
 COPY --from=build /app/backend/assets backend/assets
 COPY --from=build /app/frontend/dist frontend/dist
+# The SQLite database lives here; docker-compose.yml mounts a volume on it.
+RUN mkdir -p /app/data && chown node:node /app/data
 USER node
 EXPOSE 3000
 CMD ["node", "backend/dist/index.js"]

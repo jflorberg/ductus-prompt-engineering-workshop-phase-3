@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "default",
+    "disableBypassPermissionsMode": "disable",
+    "allow": [
+      "Bash(npm test)",
+      "Bash(npm test -w backend)",
+      "Bash(npm test -w frontend)",
+      "Bash(npm run build)",
+      "Bash(npm run build -w backend)",
+      "Bash(npm run build -w frontend)",
+      "Bash(npx vitest run *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git branch)",
+      "Bash(gh issue list *)",
+      "Bash(gh issue view *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr diff *)"
+    ],
+    "ask": [
+      "Bash(npm install *)",
+      "Bash(npm ci *)",
+      "Bash(npm run dev)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+      "Bash(git reset *)",
+      "Bash(git rebase *)",
+      "Bash(git merge *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh issue create *)",
+      "Bash(gh issue comment *)",
+      "Bash(docker *)",
+      "Bash(curl *)",
+      "Bash(git pull *)",
+      "Bash(git fetch *)",
+      "Edit(package.json)",
+      "Edit(backend/package.json)",
+      "Edit(frontend/package.json)",
+      "Edit(package-lock.json)",
+      "Edit(deploy/**)",
+      "Edit(.claude/**)"
+    ],
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.npmrc)",
+      "Read(~/.config/gh/**)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Edit(.git/**)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git clean *)",
+      "Bash(rm -rf *)",
+      "Bash(npm publish *)",
+      "Bash(npm config *)",
+      "Bash(npm adduser *)",
+      "Bash(npm login *)",
+      "Bash(gh auth *)",
+      "Bash(gh secret *)",
+      "Bash(gh repo delete *)",
+      "Bash(wget *)"
+    ]
+  },
+  "enableAllProjectMcpServers": false,
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": false,
+    "allowUnsandboxedCommands": false,
+    "network": {
+      "allowedDomains": [
+        "api.memegen.link",
+        "registry.npmjs.org",
+        "github.com",
+        "api.github.com",
+        "*.githubusercontent.com"
+      ]
+    },
+    "filesystem": {
+      "denyRead": [
+        "~/.ssh",
+        "~/.aws",
+        "~/.config/gh"
+      ],
+      "denyWrite": [
+        ".git/hooks",
+        ".claude/settings.json"
+      ]
+    }
+  }
+}

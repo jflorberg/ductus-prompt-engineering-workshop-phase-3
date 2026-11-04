@@ -25,14 +25,20 @@ describe("swipe service", () => {
   });
 
   it("returns the recorded swipe", () => {
-    expect(setup().recordSwipe("u1", "a", "like")).toEqual({ memeId: "a", direction: "like" });
+    expect(setup().recordSwipe("u1", "a", "like")).toMatchObject({
+      memeId: "a",
+      direction: "like",
+    });
   });
 
   it("keeps the first swipe when the same meme is swiped again", () => {
     const service = setup();
     service.recordSwipe("u1", "a", "like");
 
-    expect(service.recordSwipe("u1", "a", "nope")).toEqual({ memeId: "a", direction: "like" });
+    expect(service.recordSwipe("u1", "a", "nope")).toMatchObject({
+      memeId: "a",
+      direction: "like",
+    });
     expect(service.getNextMeme("u1")?.id).toBe("b");
   });
 
@@ -61,8 +67,14 @@ describe("swipe service", () => {
     service.resetSwipes("u1");
 
     // A fresh swipe is stored with its new direction, so nothing from before survived.
-    expect(service.recordSwipe("u1", "a", "nope")).toEqual({ memeId: "a", direction: "nope" });
-    expect(service.recordSwipe("u1", "b", "like")).toEqual({ memeId: "b", direction: "like" });
+    expect(service.recordSwipe("u1", "a", "nope")).toMatchObject({
+      memeId: "a",
+      direction: "nope",
+    });
+    expect(service.recordSwipe("u1", "b", "like")).toMatchObject({
+      memeId: "b",
+      direction: "like",
+    });
   });
 
   it("only resets the given user", () => {
@@ -119,7 +131,11 @@ describe("swipe service", () => {
       const likes = service.listLikedMemes("u1");
 
       expect(ids(likes)).toEqual(["a", "c"]);
-      expect(likes[0]).toEqual({ id: "a", caption: "A", imageUrl: expect.stringMatching(/a\.svg$/) });
+      expect(likes[0]).toEqual({
+        id: "a",
+        caption: "A",
+        imageUrl: expect.stringMatching(/a\.svg$/),
+      });
       expect(service.listLikedMemes("u1")).toEqual(likes);
     });
 

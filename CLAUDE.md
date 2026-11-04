@@ -4,6 +4,7 @@ Meme-Tinder is a proof of concept that workshop teams fork and extend: users swi
 
 ## Language
 
+update roadmap based on vision
 All documents and code should be in english
 
 ## Changelog
@@ -16,6 +17,7 @@ An npm workspaces monorepo with TypeScript in both workspaces.
 
 - `backend/`: Express 5 API (port 3000). Storage is in memory.
 - `frontend/`: React 19 + Vite (port 5173). The dev server proxies `/api` to the backend. In production the backend serves the built frontend (`STATIC_DIR`), so there is one process on one port.
+- `mcp/`: a stdio MCP server (`@modelcontextprotocol/sdk`) for Claude Code and Claude Desktop. A thin client of the HTTP API with no meme logic of its own; not shipped in the Docker image.
 
 Backend layers (keep them separate):
 
@@ -23,6 +25,7 @@ Backend layers (keep them separate):
 - `backend/src/swipes/service.ts`: the swipe service, which holds the business logic. It depends only on the meme catalog and a `SwipeRepository`, and is tested without HTTP.
 - `backend/src/swipes/repository.ts`: the `SwipeRepository` interface and its in-memory implementation. This is where a database plugs in: implement the interface and pass it to `createSwipeService` in `backend/src/index.ts`. Do not change the service for this.
 - `backend/src/memes/`: the meme catalog and seed data (`seed.ts`). Images are SVGs in `backend/assets/memes`.
+- `backend/src/templates/`: memes from templates. `TemplateSource` (`source.ts`) is the seam for the external provider (memegen.link in `memegen.ts`, the only code that calls it); `service.ts` holds the logic and stores memes through the meme service.
 - `backend/src/index.ts`: wires catalog, repository, service and app together.
 
 Frontend: `App.tsx` owns the state and the views, `MemeCard.tsx` handles swiping (buttons, arrow keys, pointer drag, no gesture library), `api.ts` is the only code that calls `fetch`, and `identity.ts` keeps the anonymous user id in localStorage.
@@ -31,16 +34,20 @@ Frontend: `App.tsx` owns the state and the views, `MemeCard.tsx` handles swiping
 
 Run from the repository root.
 
-| Command | What it does |
-| --- | --- |
-| `npm install` | Installs all workspaces |
-| `npm run dev` | Backend and frontend in watch mode (open http://localhost:5173) |
-| `npm test` | All backend and frontend tests (Vitest) |
-| `npm run build` | Builds both workspaces (type checks too) |
-| `npm test -w backend` / `npm test -w frontend` | Tests for one workspace |
-| `npx vitest run test/service.test.ts` (inside a workspace folder) | One test file |
+| Command                                                           | What it does                                                    |
+| ----------------------------------------------------------------- | --------------------------------------------------------------- |
+| `npm install`                                                     | Installs all workspaces                                         |
+| `npm run dev`                                                     | Backend and frontend in watch mode (open http://localhost:5173) |
+| `npm test`                                                        | All backend and frontend tests (Vitest)                         |
+| `npm run build`                                                   | Builds both workspaces (type checks too)                        |
+| `npm test -w backend` / `npm test -w frontend`                    | Tests for one workspace                                         |
+| `npx vitest run test/service.test.ts` (inside a workspace folder) | One test file                                                   |
+| `npm run lint`                                                    | ESLint on the whole repository                                  |
+| `npm run format` / `npm run format:check`                         | Formats with Prettier / checks formatting only                  |
+| `npm run typecheck`                                               | Type checks both workspaces, including tests                    |
+| `npm run check`                                                   | Everything CI runs: format check, lint, type check, build, test |
 
-Run `npm test` and `npm run build` before you finish a change.
+Run `npm run check` before you finish a change. CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the same steps on every push to `main` and every pull request, plus a Docker image build, so a change that fails locally will fail there too. Fix lint errors instead of disabling rules, and run `npm run format` rather than formatting by hand.
 
 ## Conventions
 
@@ -53,4 +60,8 @@ Run `npm test` and `npm run build` before you finish a change.
   - New React component: a new file in `frontend/src/`. Calls to the backend go through a typed function in `frontend/src/api.ts`.
 - Tests go in the workspace's `test/` folder as `<name>.test.ts(x)` and test behavior through the public interface: service tests without HTTP, endpoint tests with Supertest (see `backend/test/app.test.ts`), component tests with Testing Library. Add or update tests with every change.
 - Errors from the API are JSON `{ "error": "..." }`.
-- Do not add dependencies or tooling (such as a linter) without a reason in the task.
+- Do not add dependencies or tooling without a reason in the task. ESLint and Prettier are configured at the root (`eslint.config.mjs`, `.prettierrc.json`); change their rules only with a reason.
+
+# Roadmap
+
+Read ROADMAP.md to understand what to to under resource constraints and time constraints

@@ -239,3 +239,59 @@ describe("App", () => {
     });
   });
 });
+
+describe("post view", () => {
+  it("posts a meme as a base64 data URL from the Post tab", async () => {
+    const created = { id: "upload-1", caption: "My meme", imageUrl: "/api/memes/uploads/upload-1" };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(ok({ meme: first }))
+      .mockResolvedValueOnce({ ok: true, status: 201, json: async () => created });
+    vi.stubGlobal("fetch", fetchMock);
+    render(<App />);
+    await screen.findByRole("img", { name: first.caption });
+
+    fireEvent.click(screen.getByRole("button", { name: "Post" }));
+    const file = new File(['<svg xmlns="http://www.w3.org/2000/svg"></svg>'], "m.svg", {
+      type: "image/svg+xml",
+    });
+    fireEvent.change(screen.getByLabelText("Image"), { target: { files: [file] } });
+    fireEvent.change(screen.getByLabelText("Caption"), { target: { value: "My meme" } });
+    fireEvent.click(screen.getByRole("button", { name: "Post meme" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("My meme");
+    expect(screen.queryByRole("button", { name: "Like" })).not.toBeInTheDocument();
+    const [url, init] = fetchMock.mock.calls[1];
+    expect(url).toBe("/api/memes");
+    expect(init.method).toBe("POST");
+    expect(init.headers["X-User-Id"]).toEqual(expect.any(String));
+    const body = JSON.parse(init.body);
+    expect(body.caption).toBe("My meme");
+    expect(body.image).toMatch(/^data:image\/svg\+xml;base64,/);
+  });
+
+  it("shows the backend's error message when posting fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(ok({ meme: first }))
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          json: async () => ({ error: "image content is not a valid image/png" }),
+        }),
+    );
+    render(<App />);
+    await screen.findByRole("img", { name: first.caption });
+
+    fireEvent.click(screen.getByRole("button", { name: "Post" }));
+    fireEvent.change(screen.getByLabelText("Image"), {
+      target: { files: [new File(["x"], "m.png", { type: "image/png" })] },
+    });
+    fireEvent.change(screen.getByLabelText("Caption"), { target: { value: "My meme" } });
+    fireEvent.click(screen.getByRole("button", { name: "Post meme" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("not a valid image/png");
+  });
+});

@@ -2,6 +2,7 @@ import express, { type NextFunction, type Request, type Response } from "express
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { IMAGE_PATH } from "./memes/catalog.js";
+import { InvalidMemeError, UPLOAD_PATH, type MemeService } from "./memes/service.js";
 import { DIRECTIONS, type Direction } from "./swipes/repository.js";
 import { UnknownMemeError, type SwipeService } from "./swipes/service.js";
 
@@ -24,10 +25,14 @@ function isDirection(value: unknown): value is Direction {
 export interface AppOptions {
   /** Directory with the built frontend. When set, it is served as static files with an SPA fallback. */
   staticDir?: string;
+  /** Enables posting memes (POST /api/memes) and serving uploaded images. */
+  memeService?: MemeService;
 }
 
 export function createApp(swipeService: SwipeService, options: AppOptions = {}) {
   const app = express();
+  // A posted meme carries a base64 image (up to 1 MB, about 1.4 MB encoded), so that route allows a larger body.
+  app.post("/api/memes", express.json({ limit: "2mb" }));
   app.use(express.json());
 
   app.use(IMAGE_PATH, express.static(assetsDir));
@@ -62,6 +67,50 @@ export function createApp(swipeService: SwipeService, options: AppOptions = {}) 
       throw err;
     }
   });
+
+  const { memeService } = options;
+  if (memeService) {
+    // 201 with the new meme. It is added first in every user's pile.
+    app.post("/api/memes", (req, res) => {
+      const userId = requireUserId(req, res);
+      if (!userId) return;
+      const { caption, image } = req.body ?? {};
+      if (typeof caption !== "string" || !caption.trim()) {
+        res.status(400).json({ error: "caption is required" });
+        return;
+      }
+      if (typeof image !== "string" || !image) {
+        res.status(400).json({ error: "image is required" });
+        return;
+      }
+      try {
+        res.status(201).json(memeService.postMeme({ caption, image }));
+      } catch (err) {
+        if (err instanceof InvalidMemeError) {
+          res.status(400).json({ error: err.message });
+          return;
+        }
+        throw err;
+      }
+    });
+
+    // Uploaded images. The CSP stops scripts inside an uploaded SVG from running if it is opened directly.
+    app.get(`${UPLOAD_PATH}/:id`, (req, res) => {
+      const image = memeService.getImage(req.params.id);
+      if (!image) {
+        res.status(404).json({ error: "Image not found" });
+        return;
+      }
+      res
+        .set({
+          "Content-Type": image.contentType,
+          "Content-Security-Policy":
+            "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox",
+          "X-Content-Type-Options": "nosniff",
+        })
+        .send(image.data);
+    });
+  }
 
   // 200 with { memes }: the user's liked memes in catalog order, or an empty list.
   app.get("/api/likes", (req, res) => {
@@ -101,9 +150,13 @@ export function createApp(swipeService: SwipeService, options: AppOptions = {}) 
       _next: NextFunction,
     ) => {
       const status = err.status && err.status < 500 ? err.status : 500;
-      res
-        .status(status)
-        .json({ error: status < 500 ? "Invalid request" : "Internal server error" });
+      const error =
+        status === 413
+          ? "Request body too large"
+          : status < 500
+            ? "Invalid request"
+            : "Internal server error";
+      res.status(status).json({ error });
     },
   );
 

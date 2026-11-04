@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   fetchLikes,
   fetchNextMeme,
+  postMeme,
   resetSwipes,
   sendSwipe,
   type Direction,
@@ -10,8 +11,9 @@ import {
 import { EmptyState } from "./EmptyState";
 import { LikesView } from "./LikesView";
 import { MemeCard } from "./MemeCard";
+import { PostView } from "./PostView";
 
-type View = "swipe" | "likes";
+type View = "swipe" | "likes" | "post";
 
 export function App() {
   const [view, setView] = useState<View>("swipe");
@@ -62,6 +64,11 @@ export function App() {
     }
   }
 
+  function showPost() {
+    setView("post");
+    setError(null);
+  }
+
   async function showSwipe() {
     setView("swipe");
     await load();
@@ -110,8 +117,16 @@ export function App() {
         >
           Likes
         </button>
+        <button
+          type="button"
+          aria-current={view === "post" ? "page" : undefined}
+          onClick={showPost}
+        >
+          Post
+        </button>
       </nav>
       {error && <p role="alert">Something went wrong: {error}. Is the backend running?</p>}
+      {view === "post" && <PostView onPost={postMeme} />}
       {view === "likes" && !error && (likes ? <LikesView memes={likes} /> : <p>Loading…</p>)}
       {view === "swipe" && loading && !error && <p>Loading…</p>}
       {view === "swipe" && !loading && !error && !meme && <EmptyState onReset={reset} />}

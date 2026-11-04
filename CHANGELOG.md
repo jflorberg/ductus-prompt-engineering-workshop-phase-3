@@ -8,6 +8,11 @@
 
 - SQLite persistence for swipes: `createSqliteSwipeRepository` in `backend/src/swipes/sqlite-repository.ts` using Node's built-in `node:sqlite` (no new dependency), enabled with the `DATABASE_FILE` env var (in-memory stays the default); the Docker image stores the database on a `meme-data` volume so likes survive restarts
 
+- Post your own meme (Big Bet 2): a "Post" tab with an image picker (PNG, JPEG, GIF, WebP or SVG, up to 1 MB), a required caption (up to 140 characters), a preview with the caption band and a confirmation. Posted memes go first into every user's pile (newest first)
+- `POST /api/memes` (base64 data URL in JSON, no new dependency) and `GET /api/memes/uploads/:id`, with a meme service (`backend/src/memes/service.ts`) that checks the caption, the image type, the file content and the size, and an `ImageStore` interface with an in-memory implementation. Uploaded images are served with a strict `Content-Security-Policy` and `nosniff`, so scripts in an SVG never run
+- Posted memes look like the seed memes: the backend combines the image and the caption into one 400x400 SVG with the caption in capitals in a dark band at the bottom (`backend/src/memes/compose.ts`)
+- Typed `postMeme()` in the API client, a `PostView` component, and service, Supertest and Testing Library tests for posting
+
 - GitHub Actions CI (`.github/workflows/ci.yml`) on pushes to `main` and on pull requests: Prettier format check, ESLint, type check (including tests), build and tests, plus a job that builds the Docker image
 - ESLint (`eslint.config.mjs`: recommended rules, typescript-eslint, React hooks, no `any`, type-only imports) and Prettier (`.prettierrc.json`, 100 columns) at the repository root; `vision/` is excluded from Prettier because the upstream repository owns it
 - Root scripts `lint`, `format`, `format:check`, `typecheck` and `check` (runs everything CI runs); `typecheck` in both workspaces, with `backend/tsconfig.check.json` so backend tests are type checked too
@@ -46,6 +51,9 @@
 - `.nvmrc` and `engines` requiring Node 22+ and npm 10+; README with requirements and quick start (#2)
 
 ### Changed
+
+- `MemeCatalog` has an `add` method, and `createApp` takes an optional `memeService` option that enables the post endpoints
+- Failed API requests in the frontend now include the backend's `error` message
 
 - The codebase is formatted with Prettier (formatting only, no behavior change)
 - The initial meme load in `App` no longer sets state synchronously inside `useEffect` and ignores results that arrive after unmount (found by the React hooks lint rule)

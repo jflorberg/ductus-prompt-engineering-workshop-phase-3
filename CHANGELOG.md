@@ -6,6 +6,8 @@
 
 ### Added
 
+- SQLite persistence for swipes: `createSqliteSwipeRepository` in `backend/src/swipes/sqlite-repository.ts` using Node's built-in `node:sqlite` (no new dependency), enabled with the `DATABASE_FILE` env var (in-memory stays the default); the Docker image stores the database on a `meme-data` volume so likes survive restarts
+
 - Post your own meme (Big Bet 2): a "Post" tab with an image picker (PNG, JPEG, GIF, WebP or SVG, up to 1 MB), a required caption (up to 140 characters), a preview with the caption band and a confirmation. Posted memes go first into every user's pile (newest first)
 - `POST /api/memes` (base64 data URL in JSON, no new dependency) and `GET /api/memes/uploads/:id`, with a meme service (`backend/src/memes/service.ts`) that checks the caption, the image type, the file content and the size, and an `ImageStore` interface with an in-memory implementation. Uploaded images are served with a strict `Content-Security-Policy` and `nosniff`, so scripts in an SVG never run
 - Posted memes look like the seed memes: the backend combines the image and the caption into one 400x400 SVG with the caption in capitals in a dark band at the bottom (`backend/src/memes/compose.ts`)

@@ -52,4 +52,4 @@ All endpoints are under `/api` and need an `X-User-Id` header (the frontend crea
 
 Errors are JSON `{ "error": "..." }`: `400` for a missing user id, missing meme id, invalid direction or an invalid posted meme, `413` for a request body over 2 MB, `404` for an unknown meme id. Swiping the same meme twice is idempotent: the first swipe is kept.
 
-Swipes are stored in memory (`backend/src/swipes/repository.ts`) and are lost on restart. So are posted memes and their images (`backend/src/memes/imageStore.ts`). Implement `SwipeRepository` to plug in a database.
+Swipes are stored in memory (`backend/src/swipes/repository.ts`) by default and are lost on restart. Set `DATABASE_FILE` to a file path to store them in SQLite (`backend/src/swipes/sqlite-repository.ts`) instead; Docker does this by default (see [deploy/README.md](deploy/README.md)). To plug in another database, implement `SwipeRepository`. Posted memes and their images (`backend/src/memes/imageStore.ts`) are still stored in memory only, so they are lost on restart.

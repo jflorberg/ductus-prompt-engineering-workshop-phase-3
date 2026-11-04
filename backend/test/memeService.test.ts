@@ -88,3 +88,58 @@ describe("meme service", () => {
     expect(swipes.getNextMeme("u1")).toBeNull();
   });
 });
+
+const jpegImage = { contentType: "image/jpeg", data: Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 1]) };
+
+describe("meme service: postCaptionedMeme", () => {
+  it("stores the image full card, with no caption band, first in every pile", () => {
+    const { memes, swipes } = setup();
+
+    const meme = memes.postCaptionedMeme({ caption: "  Top / Bottom ", image: jpegImage });
+
+    expect(meme).toEqual({
+      id: expect.stringMatching(/^upload-/),
+      caption: "Top / Bottom",
+      imageUrl: `/api/memes/uploads/${meme.id}`,
+    });
+    const stored = memes.getImage(meme.id);
+    expect(stored?.contentType).toBe("image/svg+xml");
+    const svgText = stored?.data.toString() ?? "";
+    expect(svgText).toContain(`data:image/jpeg;base64,${jpegImage.data.toString("base64")}`);
+    expect(svgText).not.toContain("<text");
+    expect(swipes.getNextMeme("someone")).toEqual(meme);
+  });
+
+  it.each([
+    ["an empty caption", { caption: " ", image: jpegImage }],
+    ["a too long caption", { caption: "x".repeat(141), image: jpegImage }],
+    [
+      "an image type that is not allowed",
+      { caption: "x", image: { ...jpegImage, contentType: "text/html" } },
+    ],
+    [
+      "content that does not match the type",
+      { caption: "x", image: { ...jpegImage, contentType: "image/png" } },
+    ],
+    [
+      "an empty image",
+      { caption: "x", image: { contentType: "image/jpeg", data: Buffer.alloc(0) } },
+    ],
+    [
+      "an image over 1 MB",
+      {
+        caption: "x",
+        image: {
+          contentType: "image/jpeg",
+          data: Buffer.concat([jpegImage.data, Buffer.alloc(MAX_IMAGE_BYTES)]),
+        },
+      },
+    ],
+  ])("rejects %s like postMeme", (_name, input) => {
+    const { memes, swipes } = setup();
+
+    expect(() => memes.postCaptionedMeme(input)).toThrow(InvalidMemeError);
+    swipes.recordSwipe("u1", "a", "like");
+    expect(swipes.getNextMeme("u1")).toBeNull();
+  });
+});

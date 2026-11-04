@@ -65,6 +65,7 @@ Extra, not from a vision: memes from templates (Create tab and an MCP server, se
 
 ### Out of scope until the founder asks
 
+<<<<<<< Updated upstream
 Chat, money, ads, premium tiers, the app store, passwords and email login, and anything the vision does not
 mention.
 
@@ -292,3 +293,8 @@ hour.
 | Merge conflicts in `App.tsx`, `api.ts` and `styles.css`      | FE owns `App.tsx` and `api.ts`. Everyone merges `main` into their branch after each merge window. New CSS goes at the end of `styles.css` in its own block.               |
 | The ticker polls too often or leaks memory                   | Polling every 3 seconds with `after`, the effect is cleaned up on unmount, and the backend keeps only the last 200 events. If it is not green by 1:40, the ticker is cut. |
 | "Everything is P0" pressure leads to scope creep             | The scope table above is the contract. PM cuts at 1:40, no exceptions, and tells the founder what moves to the next session.                                              |
+=======
+Money, ads, premium tiers, accounts and real login, and anything the vision does not mention.
+The three-clap login (`ClapGate`) is a playful gate on the device, not an account: it does not
+identify anyone and must not be used to protect data.
+>>>>>>> Stashed changes

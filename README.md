@@ -22,7 +22,11 @@ npm run dev
 
 To run in Docker instead, or for more detail on both options, see [deploy/README.md](deploy/README.md).
 
+<<<<<<< Updated upstream
 Open http://localhost:5173, then swipe memes by dragging the card, with the Like and Nope buttons or with the left and right arrow keys, and use the Likes tab to see what you liked. When all memes are swiped, press Reset to start over. Use the Post tab to post your own image with a caption, or the Create tab to make a meme from a well-known template (for example "This is Fine"); both go first in everyone's pile.
+=======
+Open http://localhost:5173 and clap three times to log in (the browser asks for the microphone; without one, tap the Clap button three times). You stay logged in until the tab is closed, and Log out at the bottom locks the app again. The login is a playful gate on the device, not an account: the microphone is only read in the browser, nothing is recorded or sent, and browsers only allow it on https or localhost. Then swipe memes by dragging the card, with the Like and Nope buttons or with the left and right arrow keys, and use the Likes tab to see what you liked. When all memes are swiped, press Reset to start over.
+>>>>>>> Stashed changes
 
 ## Commands
 

@@ -307,6 +307,53 @@ describe("post view", () => {
   });
 });
 
+describe("me view", () => {
+  const profile = { id: "p1", nickname: "Curious Otter", emoji: "🦊", bot: false };
+
+  it("shows the profile from the Me tab and saves changes", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(ok({ meme: first }))
+      .mockResolvedValueOnce(ok({ profile }))
+      .mockResolvedValueOnce(ok({ profile: { ...profile, nickname: "Mum", emoji: "🦄" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<App />);
+    await screen.findByRole("img", { name: first.caption });
+
+    fireEvent.click(screen.getByRole("button", { name: "Me" }));
+    expect(await screen.findByRole("heading", { name: /Curious Otter/ })).toBeInTheDocument();
+    expect(fetchMock.mock.calls[1][0]).toBe("/api/me");
+    expect(screen.queryByRole("button", { name: "Like" })).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Nickname"), { target: { value: "Mum" } });
+    fireEvent.click(screen.getByRole("radio", { name: "🦄" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Mum");
+    const [url, init] = fetchMock.mock.calls[2];
+    expect(url).toBe("/api/me");
+    expect(init.method).toBe("PUT");
+    expect(init.headers["X-User-Id"]).toEqual(expect.any(String));
+    expect(JSON.parse(init.body)).toEqual({ nickname: "Mum", emoji: "🦄" });
+  });
+
+  it("shows an error when the profile cannot be loaded", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(ok({ meme: first }))
+        .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) }),
+    );
+    render(<App />);
+    await screen.findByRole("img", { name: first.caption });
+
+    fireEvent.click(screen.getByRole("button", { name: "Me" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("HTTP 500");
+  });
+});
+
 describe("App celebrations", () => {
   const memes = Array.from({ length: 7 }, (_, i) => ({
     id: `m${i}`,

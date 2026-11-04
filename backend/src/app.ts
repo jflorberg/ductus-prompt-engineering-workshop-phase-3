@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { IMAGE_PATH } from "./memes/catalog.js";
 import { InvalidMemeError, UPLOAD_PATH, type MemeService } from "./memes/service.js";
+import { InvalidProfileError, type ProfileService } from "./profiles/service.js";
 import { TemplateSourceError } from "./templates/source.js";
 import {
   InvalidTemplateTextError,
@@ -33,6 +34,8 @@ export interface AppOptions {
   staticDir?: string;
   /** Enables posting memes (POST /api/memes) and serving uploaded images. */
   memeService?: MemeService;
+  /** Enables profiles (GET and PUT /api/me). */
+  profileService?: ProfileService;
   /** Enables creating memes from templates (GET /api/templates, preview, POST /api/memes/from-template). */
   templateService?: TemplateService;
 }
@@ -133,6 +136,40 @@ export function createApp(swipeService: SwipeService, options: AppOptions = {}) 
           "X-Content-Type-Options": "nosniff",
         })
         .send(image.data);
+    });
+  }
+
+  const { profileService } = options;
+  if (profileService) {
+    // 200 with { profile }. The first call creates the profile, so there is no sign-up step.
+    app.get("/api/me", (req, res) => {
+      const userId = requireUserId(req, res);
+      if (!userId) return;
+      res.json({ profile: profileService.getOrCreate(userId) });
+    });
+
+    // 200 with { profile } after changing the nickname and emoji.
+    app.put("/api/me", (req, res) => {
+      const userId = requireUserId(req, res);
+      if (!userId) return;
+      const { nickname, emoji } = req.body ?? {};
+      if (typeof nickname !== "string") {
+        res.status(400).json({ error: "nickname is required" });
+        return;
+      }
+      if (typeof emoji !== "string") {
+        res.status(400).json({ error: "emoji is required" });
+        return;
+      }
+      try {
+        res.json({ profile: profileService.update(userId, { nickname, emoji }) });
+      } catch (err) {
+        if (err instanceof InvalidProfileError) {
+          res.status(400).json({ error: err.message });
+          return;
+        }
+        throw err;
+      }
     });
   }
 

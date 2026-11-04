@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   fetchLikes,
+  fetchMe,
   fetchNextMeme,
   fetchTrending,
   postMeme,
   postMemeFromTemplate,
   resetSwipes,
   sendSwipe,
+  updateMe,
   type Direction,
   type Meme,
   type MemeStats,
+  type Profile,
   type Trending,
 } from "./api";
 import { Celebration } from "./Celebration";
@@ -17,6 +20,7 @@ import { EmptyState } from "./EmptyState";
 import { LikesView } from "./LikesView";
 import { MemeCard } from "./MemeCard";
 import { PostView } from "./PostView";
+import { ProfileView } from "./ProfileView";
 import { PulseCounter } from "./PulseCounter";
 import { TemplateView } from "./TemplateView";
 import { TrendingView } from "./TrendingView";
@@ -27,13 +31,14 @@ export const LIKE_STREAK = 3;
 /** Every this many swipes (per browser) earns a celebration. */
 export const SWIPE_MILESTONE = 100;
 
-type View = "swipe" | "likes" | "trending" | "post" | "create";
+type View = "swipe" | "likes" | "trending" | "post" | "create" | "me";
 
 export function App() {
   const [view, setView] = useState<View>("swipe");
   const [meme, setMeme] = useState<Meme | null>(null);
   const [stats, setStats] = useState<MemeStats | null>(null);
   const [likes, setLikes] = useState<Meme[] | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [trending, setTrending] = useState<Trending | null>(null);
   const [loading, setLoading] = useState(true);
   const [swiping, setSwiping] = useState(false);
@@ -93,6 +98,17 @@ export function App() {
     setError(null);
     try {
       setTrending(await fetchTrending());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    }
+  }
+
+  async function showMe() {
+    setView("me");
+    setProfile(null);
+    setError(null);
+    try {
+      setProfile(await fetchMe());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     }
@@ -193,11 +209,21 @@ export function App() {
         >
           Create
         </button>
+        <button type="button" aria-current={view === "me" ? "page" : undefined} onClick={showMe}>
+          Me
+        </button>
       </nav>
       {celebration && <Celebration message={celebration} onDone={endCelebration} />}
       {error && <p role="alert">Something went wrong: {error}. Is the backend running?</p>}
       {view === "post" && <PostView onPost={postMeme} />}
       {view === "create" && <TemplateView onPost={postMemeFromTemplate} />}
+      {view === "me" &&
+        !error &&
+        (profile ? (
+          <ProfileView key={profile.id} profile={profile} onSave={updateMe} />
+        ) : (
+          <p>Loading…</p>
+        ))}
       {view === "likes" && !error && (likes ? <LikesView memes={likes} /> : <p>Loading…</p>)}
       {view === "trending" && <PulseCounter />}
       {view === "trending" &&

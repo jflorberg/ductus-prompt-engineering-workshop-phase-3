@@ -10,6 +10,14 @@
 - Celebrations with CSS fireworks (`Celebration` component, explosions of sparks around the screen): on every 3 likes in a row, and on every 100th swipe in this browser (counted in localStorage by `swipeCount.ts`). The fireworks are left out when the user prefers reduced motion
 - Testing Library tests for the stamp, the fly-out, the streak, the 100th swipe and the celebration
 
+- `docs/specs/meme-generator.md`: the spec for creating memes from templates (memegen.link) in a new "Create" tab and through an MCP server for Claude Code and Claude Desktop
+
+- Meme generator backend: `GET /api/templates`, `GET /api/templates/:id/preview` and `POST /api/memes/from-template`. Templates come from memegen.link behind a `TemplateSource` interface (`backend/src/templates/`), cached for 24 hours, with a 5 second timeout and a `502` "unavailable" error when the provider fails. Set `MEMEGEN_BASE_URL` to use another instance. Created memes go first in every pile, stored by the new `postCaptionedMeme` as a full-card SVG (`composeFullCardSvg`) with no caption band; `POST /api/memes` is unchanged
+
+- Meme generator "Create" tab: search templates, pick one, type a line per template line with a live preview, and post it (`TemplateView.tsx`, `searchTemplates`, `templatePreviewUrl` and `postMemeFromTemplate` in `api.ts`)
+
+- MCP server (`mcp/` workspace) with `search_templates` and `create_meme` tools, so Claude Code or Claude Desktop can create memes through the API. New dependencies `@modelcontextprotocol/sdk` and `zod`, used only by `mcp/`. The Dockerfile copies `mcp/package.json` so `npm ci` matches the lockfile
+
 - SQLite persistence for swipes: `createSqliteSwipeRepository` in `backend/src/swipes/sqlite-repository.ts` using Node's built-in `node:sqlite` (no new dependency), enabled with the `DATABASE_FILE` env var (in-memory stays the default); the Docker image stores the database on a `meme-data` volume so likes survive restarts
 
 - Post your own meme (Big Bet 2): a "Post" tab with an image picker (PNG, JPEG, GIF, WebP or SVG, up to 1 MB), a required caption (up to 140 characters), a preview with the caption band and a confirmation. Posted memes go first into every user's pile (newest first)
@@ -59,6 +67,8 @@
 - `.nvmrc` and `engines` requiring Node 22+ and npm 10+; README with requirements and quick start (#2)
 
 ### Changed
+
+- Claude Code project settings (`.claude/settings.json`): `curl` moves from deny to ask, `git pull`/`git fetch` are ask rules, and `api.memegen.link` is in the sandbox's allowed domains, so the template provider can be checked from Claude Code
 
 - `MemeCatalog` has an `add` method, and `createApp` takes an optional `memeService` option that enables the post endpoints
 - Failed API requests in the frontend now include the backend's `error` message

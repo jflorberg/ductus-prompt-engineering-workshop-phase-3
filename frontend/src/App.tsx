@@ -4,6 +4,7 @@ import {
   fetchNextMeme,
   fetchTrending,
   postMeme,
+  postMemeFromTemplate,
   resetSwipes,
   sendSwipe,
   type Direction,
@@ -17,6 +18,7 @@ import { LikesView } from "./LikesView";
 import { MemeCard } from "./MemeCard";
 import { PostView } from "./PostView";
 import { PulseCounter } from "./PulseCounter";
+import { TemplateView } from "./TemplateView";
 import { TrendingView } from "./TrendingView";
 import { countSwipe } from "./swipeCount";
 
@@ -25,7 +27,7 @@ export const LIKE_STREAK = 3;
 /** Every this many swipes (per browser) earns a celebration. */
 export const SWIPE_MILESTONE = 100;
 
-type View = "swipe" | "likes" | "trending" | "post";
+type View = "swipe" | "likes" | "trending" | "post" | "create";
 
 export function App() {
   const [view, setView] = useState<View>("swipe");
@@ -98,6 +100,11 @@ export function App() {
 
   function showPost() {
     setView("post");
+    setError(null);
+  }
+
+  function showCreate() {
+    setView("create");
     setError(null);
   }
 
@@ -179,10 +186,18 @@ export function App() {
         >
           Post
         </button>
+        <button
+          type="button"
+          aria-current={view === "create" ? "page" : undefined}
+          onClick={showCreate}
+        >
+          Create
+        </button>
       </nav>
       {celebration && <Celebration message={celebration} onDone={endCelebration} />}
       {error && <p role="alert">Something went wrong: {error}. Is the backend running?</p>}
       {view === "post" && <PostView onPost={postMeme} />}
+      {view === "create" && <TemplateView onPost={postMemeFromTemplate} />}
       {view === "likes" && !error && (likes ? <LikesView memes={likes} /> : <p>Loading…</p>)}
       {view === "trending" && <PulseCounter />}
       {view === "trending" &&

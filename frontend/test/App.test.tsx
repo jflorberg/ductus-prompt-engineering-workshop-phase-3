@@ -19,6 +19,17 @@ describe("App", () => {
     expect(image).toHaveAttribute("src", first.imageUrl);
   });
 
+  it("tells the user their likes are saved", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok({ meme: first })));
+
+    render(<App />);
+
+    await screen.findByRole("img", { name: first.caption });
+    expect(
+      screen.getByText("Your likes are saved, even when the app restarts."),
+    ).toBeInTheDocument();
+  });
+
   it.each([
     ["Like", "like"],
     ["Nope", "nope"],

@@ -17,6 +17,10 @@
 - Posted memes look like the seed memes: the backend combines the image and the caption into one 400x400 SVG with the caption in capitals in a dark band at the bottom (`backend/src/memes/compose.ts`)
 - Typed `postMeme()` in the API client, a `PostView` component, and service, Supertest and Testing Library tests for posting
 
+- Hot or not (Vision 001, Big Bet 3): every swipe gets a `swipedAt` timestamp (the swipe service takes an injectable clock), `listAll` on `SwipeRepository`, and `getMemeStats`, `getTrending` and `getSwipesPerMinute` on the service. `GET /api/memes/next` now also returns the meme's `stats`; new `GET /api/trending` (last hour, falling back to all time when fewer than 5 swipes) and `GET /api/pulse` (swipes per minute). The SQLite repository stores `swiped_at` and adds the column to existing databases, where old swipes count as all-time only
+- Frontend: a pink love meter on each card ("87% of people loved this", or "Be the first to rate this meme!"), a Trending tab with medals, and a live "memes swiped per minute" counter that refreshes every 5 seconds and keeps its last number when a refresh fails. Service, Supertest and Testing Library tests
+- Pink and fun frontend theme: colour tokens, a pink gradient background, rounded cards and pill buttons with emoji, a pop-in animation for each new card (off with `prefers-reduced-motion`), and a "Your likes are saved" note
+
 - GitHub Actions CI (`.github/workflows/ci.yml`) on pushes to `main` and on pull requests: Prettier format check, ESLint, type check (including tests), build and tests, plus a job that builds the Docker image
 - ESLint (`eslint.config.mjs`: recommended rules, typescript-eslint, React hooks, no `any`, type-only imports) and Prettier (`.prettierrc.json`, 100 columns) at the repository root; `vision/` is excluded from Prettier because the upstream repository owns it
 - Root scripts `lint`, `format`, `format:check`, `typecheck` and `check` (runs everything CI runs); `typecheck` in both workspaces, with `backend/tsconfig.check.json` so backend tests are type checked too

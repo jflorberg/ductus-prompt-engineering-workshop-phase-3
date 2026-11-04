@@ -37,11 +37,24 @@ export function createApp(swipeService: SwipeService, options: AppOptions = {}) 
 
   app.use(IMAGE_PATH, express.static(assetsDir));
 
-  // 200 with { meme }. When the user has swiped every meme, meme is null.
+  // 200 with { meme, stats }. When the user has swiped every meme, both are null.
   app.get("/api/memes/next", (req, res) => {
     const userId = requireUserId(req, res);
     if (!userId) return;
-    res.json({ meme: swipeService.getNextMeme(userId) });
+    const meme = swipeService.getNextMeme(userId);
+    res.json({ meme, stats: meme ? swipeService.getMemeStats(meme.id) : null });
+  });
+
+  // 200 with { window, memes }: the most liked memes of the last hour, or of all time when quiet.
+  app.get("/api/trending", (req, res) => {
+    if (!requireUserId(req, res)) return;
+    res.json(swipeService.getTrending());
+  });
+
+  // 200 with { swipesPerMinute }: swipes from all users in the last 60 seconds.
+  app.get("/api/pulse", (req, res) => {
+    if (!requireUserId(req, res)) return;
+    res.json({ swipesPerMinute: swipeService.getSwipesPerMinute() });
   });
 
   // 200 with the stored swipe. Swiping the same meme twice keeps the first swipe.

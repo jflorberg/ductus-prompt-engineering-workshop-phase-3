@@ -4,6 +4,7 @@ Meme-Tinder is a proof of concept that workshop teams fork and extend: users swi
 
 ## Language
 
+update roadmap based on vision
 All documents and code should be in english
 
 ## Changelog
@@ -58,3 +59,7 @@ Run `npm run check` before you finish a change. CI ([.github/workflows/ci.yml](.
 - Tests go in the workspace's `test/` folder as `<name>.test.ts(x)` and test behavior through the public interface: service tests without HTTP, endpoint tests with Supertest (see `backend/test/app.test.ts`), component tests with Testing Library. Add or update tests with every change.
 - Errors from the API are JSON `{ "error": "..." }`.
 - Do not add dependencies or tooling without a reason in the task. ESLint and Prettier are configured at the root (`eslint.config.mjs`, `.prettierrc.json`); change their rules only with a reason.
+
+# Roadmap
+
+Read ROADMAP.md to understand what to to under resource constraints and time constraints

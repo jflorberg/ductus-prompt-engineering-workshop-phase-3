@@ -6,6 +6,12 @@ export function LikesView({ memes }: { memes: Meme[] }) {
       <section className="likes-view">
         <h2>Your likes</h2>
         <p>You have not liked any memes yet.</p>
+        <p>
+          <span className="emoji" aria-hidden="true">
+            👉
+          </span>
+          Swipe right on a meme to keep it here forever.
+        </p>
       </section>
     );
   }

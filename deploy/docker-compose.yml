@@ -6,3 +6,9 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+    volumes:
+      # Swipes (likes and nopes) live here, so they survive restarts and rebuilds.
+      - meme-data:/app/data
+
+volumes:
+  meme-data:

@@ -44,4 +44,4 @@ All endpoints are under `/api` and need an `X-User-Id` header (the frontend crea
 
 Errors are JSON `{ "error": "..." }`: `400` for a missing user id, missing meme id or invalid direction, `404` for an unknown meme id. Swiping the same meme twice is idempotent: the first swipe is kept.
 
-Swipes are stored in memory (`backend/src/swipes/repository.ts`) and are lost on restart. Implement `SwipeRepository` to plug in a database.
+Swipes are saved to a JSON file (`backend/src/swipes/fileRepository.ts`; the path comes from `DATA_FILE`, default `data/swipes.json` in the backend's working directory), so likes survive a restart. Implement `SwipeRepository` to plug in a database.

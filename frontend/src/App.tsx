@@ -72,7 +72,12 @@ export function App() {
 
   return (
     <main>
-      <h1>Meme-Tinder</h1>
+      <h1>
+        Meme-Tinder{" "}
+        <span className="sparkle" aria-hidden="true">
+          💖
+        </span>
+      </h1>
       <nav>
         <button type="button" aria-current={view === "swipe" ? "page" : undefined} onClick={showSwipe}>
           Swipe
@@ -86,8 +91,16 @@ export function App() {
       {view === "swipe" && loading && !error && <p>Loading…</p>}
       {view === "swipe" && !loading && !error && !meme && <EmptyState onReset={reset} />}
       {view === "swipe" && meme && (
-        <MemeCard key={meme.id} meme={meme} onSwipe={swipe} disabled={swiping} />
+        <div className="swipe-view">
+          <MemeCard key={meme.id} meme={meme} onSwipe={swipe} disabled={swiping} />
+        </div>
       )}
+      <p className="saved-note">
+        <span className="emoji" aria-hidden="true">
+          💾
+        </span>
+        Your likes are saved, even when the app restarts.
+      </p>
     </main>
   );
 }

@@ -1,28 +1,117 @@
+/* Pink and fun theme. Colors are tokens so the whole look can be tuned in one place. */
+:root {
+  --pink-50: #fff0f7;
+  --pink-100: #ffe0ef;
+  --pink-200: #ffc2df;
+  --pink-400: #ff6fb1;
+  --pink-500: #ff3d96;
+  --pink-600: #e0207a;
+  --pink-700: #b3125f;
+  --berry: #7a1748;
+  --mint: #2bc59a;
+  --mint-dark: #17946f;
+  --nope: #ff5a5f;
+  --nope-dark: #d63a40;
+  --card: #ffffff;
+  --text: #4a1030;
+  --shadow: 0 10px 30px rgba(224, 32, 122, 0.25);
+  --radius: 24px;
+  --font: ui-rounded, "SF Pro Rounded", "Nunito", "Varela Round", "Segoe UI", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #fff5f5;
-  color: #222;
+  min-height: 100vh;
+  font-family: var(--font);
+  color: var(--text);
+  background:
+    radial-gradient(circle at 15% 10%, var(--pink-200) 0 8%, transparent 9%),
+    radial-gradient(circle at 85% 25%, var(--pink-100) 0 10%, transparent 11%),
+    radial-gradient(circle at 20% 85%, var(--pink-100) 0 12%, transparent 13%),
+    linear-gradient(160deg, var(--pink-50), var(--pink-100) 60%, var(--pink-200));
+  background-attachment: fixed;
 }
 
 main {
   max-width: 420px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1rem 1rem 2rem;
   text-align: center;
 }
 
+h1 {
+  margin: 0.5rem 0 1rem;
+  font-size: 2.4rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--pink-600);
+  text-shadow: 3px 3px 0 var(--pink-200);
+}
+
+h1 .sparkle {
+  display: inline-block;
+  animation: wiggle 2.4s ease-in-out infinite;
+}
+
+h2 {
+  color: var(--pink-700);
+}
+
+/* --- Navigation --- */
+
+nav {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+nav button {
+  padding: 0.5rem 1.4rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 800;
+  color: var(--pink-600);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+nav button:hover {
+  background: var(--pink-50);
+}
+
+nav button[aria-current="page"] {
+  color: #fff;
+  background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+}
+
+/* --- Meme card --- */
+
 .meme-card {
   margin: 0;
-  background: #fff;
-  border-radius: 16px;
+  background: var(--card);
+  border: 4px solid #fff;
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow);
   /* Let the browser keep vertical scrolling; horizontal moves go to our drag handler. */
   touch-action: pan-y;
   user-select: none;
   cursor: grab;
   transition: transform 0.2s ease;
+}
+
+.swipe-view .meme-card {
+  animation: pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .meme-card.dragging {
@@ -34,70 +123,82 @@ main {
   display: block;
   width: 100%;
   aspect-ratio: 1;
+  background: var(--pink-50);
 }
 
 .meme-card figcaption {
-  padding: 0.75rem 1rem;
+  padding: 0.9rem 1rem 1rem;
+  font-weight: 700;
+  font-size: 1.05rem;
 }
+
+/* --- Buttons --- */
 
 .actions {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.25rem;
 }
 
-.actions button {
+.actions button,
+.empty-state button {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   border: 0;
   border-radius: 999px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font: inherit;
+  font-size: 1.15rem;
+  font-weight: 900;
   color: #fff;
   cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.actions button:hover:not(:disabled),
+.empty-state button:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.actions button:active:not(:disabled),
+.empty-state button:active {
+  transform: translateY(2px) scale(0.98);
+}
+
+.actions button:disabled {
+  cursor: progress;
+  filter: saturate(0.4) opacity(0.7);
 }
 
 .actions .like {
-  background: #2e9e5b;
+  background: var(--mint);
+  box-shadow: 0 5px 0 var(--mint-dark);
 }
 
 .actions .nope {
-  background: #d64545;
+  background: var(--nope);
+  box-shadow: 0 5px 0 var(--nope-dark);
+}
+
+.empty-state {
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
 }
 
 .empty-state button {
-  padding: 0.75rem 2rem;
-  border: 0;
-  border-radius: 999px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #fff;
-  background: #2e9e5b;
-  cursor: pointer;
+  flex: none;
+  padding: 0.85rem 2.5rem;
+  background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+  box-shadow: 0 5px 0 var(--pink-700);
 }
 
-nav {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+.emoji {
+  margin-inline-end: 0.35em;
 }
 
-nav button {
-  padding: 0.5rem 1.5rem;
-  border: 2px solid #d64545;
-  border-radius: 999px;
-  font-weight: 600;
-  color: #d64545;
-  background: transparent;
-  cursor: pointer;
-}
-
-nav button[aria-current="page"] {
-  color: #fff;
-  background: #d64545;
-}
+/* --- Likes --- */
 
 .likes-view ul {
   display: grid;
@@ -105,4 +206,60 @@ nav button[aria-current="page"] {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.likes-view .meme-card {
+  cursor: default;
+}
+
+/* --- Messages --- */
+
+[role="alert"] {
+  padding: 0.75rem 1rem;
+  border-radius: 16px;
+  font-weight: 700;
+  color: var(--berry);
+  background: var(--pink-200);
+}
+
+.saved-note {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--pink-700);
+  opacity: 0.8;
+}
+
+:focus-visible {
+  outline: 3px solid var(--pink-500);
+  outline-offset: 3px;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-12deg) scale(1.1);
+  }
+  75% {
+    transform: rotate(12deg) scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

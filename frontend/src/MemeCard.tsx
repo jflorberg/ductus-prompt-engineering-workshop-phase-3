@@ -67,9 +67,15 @@ export function MemeCard({ meme, onSwipe, disabled = false }: MemeCardProps) {
       </figure>
       <div className="actions">
         <button type="button" className="nope" disabled={disabled} onClick={() => onSwipe("nope")}>
+          <span className="emoji" aria-hidden="true">
+            🙅
+          </span>
           Nope
         </button>
         <button type="button" className="like" disabled={disabled} onClick={() => onSwipe("like")}>
+          <span className="emoji" aria-hidden="true">
+            💖
+          </span>
           Like
         </button>
       </div>

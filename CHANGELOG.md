@@ -6,6 +6,9 @@
 
 ### Added
 
+- Swipes survive a restart (Vision 001, Big Bet 1): `createFileSwipeRepository` saves them to a JSON file (`DATA_FILE`, default `data/swipes.json`) with atomic writes, and refuses to start on a corrupt file instead of overwriting it; the backend uses it by default. Docker sets `DATA_FILE=/app/data/swipes.json` on a `meme-data` volume. Tests for restart, reset and corrupt files
+- Pink and fun frontend theme: colour tokens, a pink gradient background, rounded cards and pill buttons with emoji, a pop-in animation for each new card (off with `prefers-reduced-motion`), and a "Your likes are saved" note
+
 - `ROADMAP.md`: a 2-hour sprint plan for a team of a frontend developer, a backend developer, a full-stack developer and a manager
 
 - 20 more memes (SVG assets and seed entries), bringing the catalog to 30

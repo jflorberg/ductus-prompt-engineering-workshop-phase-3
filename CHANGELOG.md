@@ -72,6 +72,7 @@
 
 ### Changed
 
+- `ROADMAP.md`: the product context is updated for Vision 002 (profiles, Big Bet 4 done, the meme generator, a "secret stays secret" principle) and a Vision 002 plan ("It's a Match!") is added: scope and status, answers to the founder's open questions (privacy, bots so there is always someone to match with, minimum shared swipes, "Hot or not" stays), the compatibility score, passwordless login on another device with a one-time pairing code, the API contract and the plan per role
 - Claude Code project settings (`.claude/settings.json`): `curl` moves from deny to ask, `git pull`/`git fetch` are ask rules, and `api.memegen.link` is in the sandbox's allowed domains, so the template provider can be checked from Claude Code
 
 - `MemeCatalog` has an `add` method, and `createApp` takes an optional `memeService` option that enables the post endpoints

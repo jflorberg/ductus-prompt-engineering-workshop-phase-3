@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchLikes, fetchNextMeme, resetSwipes, sendSwipe, type Direction, type Meme } from "./api";
+import {
+  fetchLikes,
+  fetchNextMeme,
+  resetSwipes,
+  sendSwipe,
+  type Direction,
+  type Meme,
+} from "./api";
 import { EmptyState } from "./EmptyState";
 import { LikesView } from "./LikesView";
 import { MemeCard } from "./MemeCard";
@@ -25,9 +32,24 @@ export function App() {
     }
   }, []);
 
+  // Initial load. State is only set in promise callbacks (not synchronously in the effect),
+  // and results that arrive after unmount are ignored.
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+    fetchNextMeme()
+      .then((next) => {
+        if (!cancelled) setMeme(next);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Unknown error");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function showLikes() {
     setView("likes");
@@ -74,10 +96,18 @@ export function App() {
     <main>
       <h1>Meme-Tinder</h1>
       <nav>
-        <button type="button" aria-current={view === "swipe" ? "page" : undefined} onClick={showSwipe}>
+        <button
+          type="button"
+          aria-current={view === "swipe" ? "page" : undefined}
+          onClick={showSwipe}
+        >
           Swipe
         </button>
-        <button type="button" aria-current={view === "likes" ? "page" : undefined} onClick={showLikes}>
+        <button
+          type="button"
+          aria-current={view === "likes" ? "page" : undefined}
+          onClick={showLikes}
+        >
           Likes
         </button>
       </nav>

@@ -65,6 +65,8 @@ h2 {
 
 nav {
   display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.25rem;
   margin-bottom: 1.25rem;
   padding: 0.25rem;
@@ -74,7 +76,7 @@ nav {
 }
 
 nav button {
-  padding: 0.5rem 1.1rem;
+  padding: 0.5rem 0.9rem;
   border: 0;
   border-radius: 999px;
   font: inherit;
@@ -433,4 +435,78 @@ nav button[aria-current="page"] {
     transform: scale(1.6);
     opacity: 0.5;
   }
+}
+
+/* --- Post a meme --- */
+
+.post-view form {
+  display: grid;
+  gap: 1rem;
+  text-align: left;
+}
+
+.post-view label {
+  display: grid;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.post-view input[type="text"] {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--pink-200);
+  border-radius: 12px;
+  font: inherit;
+}
+
+/* Mirrors the backend's composed meme: a square card, the image on top, the caption in a dark band (130/400). */
+.post-preview {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #1e1e2e;
+}
+
+.post-preview img {
+  display: block;
+  width: 100%;
+  height: 67.5%;
+  object-fit: contain;
+}
+
+.post-preview-band {
+  position: absolute;
+  inset: 67.5% 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-family: Impact, "Arial Black", sans-serif;
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-align: center;
+  overflow-wrap: anywhere;
+  -webkit-text-stroke: 1px #000;
+  text-shadow: 0 0 4px #000;
+}
+
+.post-view button[type="submit"] {
+  padding: 0.75rem 2rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+  box-shadow: 0 5px 0 var(--pink-700);
+  cursor: pointer;
+}
+
+.post-view button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: default;
 }

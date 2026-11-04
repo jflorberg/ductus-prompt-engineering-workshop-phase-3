@@ -4,5 +4,5 @@ node_modules
 dist
 *.tsbuildinfo
 .vite/
-# Saved swipes (DATA_FILE)
+# Local SQLite database (DATABASE_FILE=data/swipes.db)
 backend/data/

@@ -6,9 +6,15 @@
 
 ### Added
 
-- Hot or not (Vision 001, Big Bet 3): every swipe gets a `swipedAt` timestamp (the swipe service takes an injectable clock), `listAll` on `SwipeRepository`, and `getMemeStats`, `getTrending` and `getSwipesPerMinute` on the service. `GET /api/memes/next` now also returns the meme's `stats`; new `GET /api/trending` (last hour, falling back to all time when fewer than 5 swipes) and `GET /api/pulse` (swipes per minute). Swipe files saved before timestamps load as old swipes
+- SQLite persistence for swipes: `createSqliteSwipeRepository` in `backend/src/swipes/sqlite-repository.ts` using Node's built-in `node:sqlite` (no new dependency), enabled with the `DATABASE_FILE` env var (in-memory stays the default); the Docker image stores the database on a `meme-data` volume so likes survive restarts
+
+- Post your own meme (Big Bet 2): a "Post" tab with an image picker (PNG, JPEG, GIF, WebP or SVG, up to 1 MB), a required caption (up to 140 characters), a preview with the caption band and a confirmation. Posted memes go first into every user's pile (newest first)
+- `POST /api/memes` (base64 data URL in JSON, no new dependency) and `GET /api/memes/uploads/:id`, with a meme service (`backend/src/memes/service.ts`) that checks the caption, the image type, the file content and the size, and an `ImageStore` interface with an in-memory implementation. Uploaded images are served with a strict `Content-Security-Policy` and `nosniff`, so scripts in an SVG never run
+- Posted memes look like the seed memes: the backend combines the image and the caption into one 400x400 SVG with the caption in capitals in a dark band at the bottom (`backend/src/memes/compose.ts`)
+- Typed `postMeme()` in the API client, a `PostView` component, and service, Supertest and Testing Library tests for posting
+
+- Hot or not (Vision 001, Big Bet 3): every swipe gets a `swipedAt` timestamp (the swipe service takes an injectable clock), `listAll` on `SwipeRepository`, and `getMemeStats`, `getTrending` and `getSwipesPerMinute` on the service. `GET /api/memes/next` now also returns the meme's `stats`; new `GET /api/trending` (last hour, falling back to all time when fewer than 5 swipes) and `GET /api/pulse` (swipes per minute). The SQLite repository stores `swiped_at` and adds the column to existing databases, where old swipes count as all-time only
 - Frontend: a pink love meter on each card ("87% of people loved this", or "Be the first to rate this meme!"), a Trending tab with medals, and a live "memes swiped per minute" counter that refreshes every 5 seconds and keeps its last number when a refresh fails. Service, Supertest and Testing Library tests
-- Swipes survive a restart (Vision 001, Big Bet 1): `createFileSwipeRepository` saves them to a JSON file (`DATA_FILE`, default `data/swipes.json`) with atomic writes, and refuses to start on a corrupt file instead of overwriting it; the backend uses it by default. Docker sets `DATA_FILE=/app/data/swipes.json` on a `meme-data` volume. Tests for restart, reset and corrupt files
 - Pink and fun frontend theme: colour tokens, a pink gradient background, rounded cards and pill buttons with emoji, a pop-in animation for each new card (off with `prefers-reduced-motion`), and a "Your likes are saved" note
 
 - GitHub Actions CI (`.github/workflows/ci.yml`) on pushes to `main` and on pull requests: Prettier format check, ESLint, type check (including tests), build and tests, plus a job that builds the Docker image
@@ -49,6 +55,9 @@
 - `.nvmrc` and `engines` requiring Node 22+ and npm 10+; README with requirements and quick start (#2)
 
 ### Changed
+
+- `MemeCatalog` has an `add` method, and `createApp` takes an optional `memeService` option that enables the post endpoints
+- Failed API requests in the frontend now include the backend's `error` message
 
 - The codebase is formatted with Prettier (formatting only, no behavior change)
 - The initial meme load in `App` no longer sets state synchronously inside `useEffect` and ignores results that arrive after unmount (found by the React hooks lint rule)

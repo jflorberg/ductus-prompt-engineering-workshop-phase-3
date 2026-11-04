@@ -13,7 +13,7 @@ RUN npm run build
 
 # --- Runtime stage: production dependencies, built backend and built frontend ---
 FROM node:22-alpine
-ENV NODE_ENV=production PORT=3000 STATIC_DIR=/app/frontend/dist DATA_FILE=/app/data/swipes.json
+ENV NODE_ENV=production PORT=3000 STATIC_DIR=/app/frontend/dist DATABASE_FILE=/app/data/swipes.db
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/
@@ -22,7 +22,7 @@ RUN npm ci --omit=dev --workspace backend --include-workspace-root=false
 COPY --from=build /app/backend/dist backend/dist
 COPY --from=build /app/backend/assets backend/assets
 COPY --from=build /app/frontend/dist frontend/dist
-# Swipes are saved here. docker-compose.yml mounts a volume on it so they survive restarts.
+# The SQLite database lives here; docker-compose.yml mounts a volume on it.
 RUN mkdir -p /app/data && chown node:node /app/data
 USER node
 EXPOSE 3000

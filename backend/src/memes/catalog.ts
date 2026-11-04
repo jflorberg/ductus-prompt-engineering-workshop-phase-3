@@ -9,8 +9,11 @@ export interface Meme {
 export const IMAGE_PATH = "/api/memes/images";
 
 export interface MemeCatalog {
+  /** All memes: added memes first (newest first), then the seed memes. */
   list(): Meme[];
   getById(id: string): Meme | undefined;
+  /** Adds a meme to the front of the catalog, so every user gets it next in their pile. */
+  add(meme: Meme): void;
 }
 
 function toMeme(seed: SeedMeme): Meme {
@@ -22,5 +25,8 @@ export function createMemeCatalog(seeds: SeedMeme[] = seedMemes): MemeCatalog {
   return {
     list: () => [...memes],
     getById: (id) => memes.find((meme) => meme.id === id),
+    add: (meme) => {
+      memes.unshift(meme);
+    },
   };
 }

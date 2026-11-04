@@ -41,7 +41,9 @@ All endpoints are under `/api` and need an `X-User-Id` header (the frontend crea
 | `POST /api/swipes`      | Body `{ "memeId": "...", "direction": "like" \| "nope" }`. `200` with the stored swipe                       |
 | `GET /api/likes`        | `200 { "memes": [...] }` with the user's liked memes in catalog order (`[]` when nothing is liked)           |
 | `DELETE /api/swipes`    | Removes all of the user's swipes, including likes. `204 No Content`; safe to call repeatedly                 |
+| `POST /api/memes`       | Body `{ "caption": "...", "image": "data:image/png;base64,..." }`. Posts a meme first in every user's pile (newest first). The image is stored as an SVG with the caption in a band at the bottom, like the seed memes. `201` with the new meme. Captions are 1–140 characters; images are PNG, JPEG, GIF, WebP or SVG, up to 1 MB, and the content must match the type |
+| `GET /api/memes/uploads/:id` | The uploaded image (no `X-User-Id` needed). Served with a strict `Content-Security-Policy`, so scripts in an uploaded SVG never run. `404` for an unknown id |
 
-Errors are JSON `{ "error": "..." }`: `400` for a missing user id, missing meme id or invalid direction, `404` for an unknown meme id. Swiping the same meme twice is idempotent: the first swipe is kept.
+Errors are JSON `{ "error": "..." }`: `400` for a missing user id, missing meme id, invalid direction or an invalid posted meme, `413` for a request body over 2 MB, `404` for an unknown meme id. Swiping the same meme twice is idempotent: the first swipe is kept.
 
-Swipes are stored in memory (`backend/src/swipes/repository.ts`) and are lost on restart. Implement `SwipeRepository` to plug in a database.
+Swipes are stored in memory (`backend/src/swipes/repository.ts`) and are lost on restart. So are posted memes and their images (`backend/src/memes/imageStore.ts`). Implement `SwipeRepository` to plug in a database.

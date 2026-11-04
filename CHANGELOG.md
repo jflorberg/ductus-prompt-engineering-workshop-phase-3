@@ -6,6 +6,10 @@
 
 ### Added
 
+- Profiles (Vision 002, Big Bet 1 "Who am I?"): every user gets a profile with a nickname and an emoji, created automatically with a random nickname ("Curious Otter") on the first visit, so there is no sign-up step. The existing anonymous user id stays the key, so nobody loses their swipes or likes. A profile has a separate public id, so the secret user id is never shown to other users
+- `GET /api/me` and `PUT /api/me` (nickname 1–30 characters, exactly one emoji), a profile service (`backend/src/profiles/service.ts`) and a `ProfileRepository` with in-memory and SQLite implementations; with `DATABASE_FILE` set, profiles are stored in the same SQLite file as the swipes
+- A "Me" tab (`ProfileView`) to change the nickname and pick an emoji, typed `fetchMe()` and `updateMe()` in the API client, and service, repository, Supertest and Testing Library tests
+
 - Feel the swipe (Big Bet 4): a LIKE or NOPE stamp that fades in while dragging and is stamped on release, button click or arrow key; the swiped card flies off the screen (300 ms) before the swipe is sent, and the next card arrives with a bounce. CSS only, and no animation when the user prefers reduced motion
 - Celebrations with CSS fireworks (`Celebration` component, explosions of sparks around the screen): on every 3 likes in a row, and on every 100th swipe in this browser (counted in localStorage by `swipeCount.ts`). The fireworks are left out when the user prefers reduced motion
 - Testing Library tests for the stamp, the fly-out, the streak, the 100th swipe and the celebration

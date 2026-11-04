@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   fetchLikes,
+  fetchMe,
   fetchNextMeme,
   postMeme,
   resetSwipes,
   sendSwipe,
+  updateMe,
   type Direction,
   type Meme,
+  type Profile,
 } from "./api";
 import { Celebration } from "./Celebration";
 import { EmptyState } from "./EmptyState";
 import { LikesView } from "./LikesView";
 import { MemeCard } from "./MemeCard";
 import { PostView } from "./PostView";
+import { ProfileView } from "./ProfileView";
 import { countSwipe } from "./swipeCount";
 
 /** Likes in a row that earn fireworks. */
@@ -20,12 +24,13 @@ export const LIKE_STREAK = 3;
 /** Every this many swipes (per browser) earns a celebration. */
 export const SWIPE_MILESTONE = 100;
 
-type View = "swipe" | "likes" | "post";
+type View = "swipe" | "likes" | "post" | "me";
 
 export function App() {
   const [view, setView] = useState<View>("swipe");
   const [meme, setMeme] = useState<Meme | null>(null);
   const [likes, setLikes] = useState<Meme[] | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [swiping, setSwiping] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +74,17 @@ export function App() {
     setError(null);
     try {
       setLikes(await fetchLikes());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    }
+  }
+
+  async function showMe() {
+    setView("me");
+    setProfile(null);
+    setError(null);
+    try {
+      setProfile(await fetchMe());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     }
@@ -145,10 +161,20 @@ export function App() {
         >
           Post
         </button>
+        <button type="button" aria-current={view === "me" ? "page" : undefined} onClick={showMe}>
+          Me
+        </button>
       </nav>
       {celebration && <Celebration message={celebration} onDone={endCelebration} />}
       {error && <p role="alert">Something went wrong: {error}. Is the backend running?</p>}
       {view === "post" && <PostView onPost={postMeme} />}
+      {view === "me" &&
+        !error &&
+        (profile ? (
+          <ProfileView key={profile.id} profile={profile} onSave={updateMe} />
+        ) : (
+          <p>Loading…</p>
+        ))}
       {view === "likes" && !error && (likes ? <LikesView memes={likes} /> : <p>Loading…</p>)}
       {view === "swipe" && loading && !error && <p>Loading…</p>}
       {view === "swipe" && !loading && !error && !meme && <EmptyState onReset={reset} />}

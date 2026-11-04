@@ -53,6 +53,32 @@ export async function resetSwipes(): Promise<void> {
   await request("/api/swipes", { method: "DELETE" });
 }
 
+/** A person as other users see them. The id is public; the secret user id is never in it. */
+export interface Profile {
+  id: string;
+  nickname: string;
+  emoji: string;
+  bot: boolean;
+}
+
+export const MAX_NICKNAME_LENGTH = 30;
+
+/** The current user's profile. The backend creates it on the first call. */
+export async function fetchMe(): Promise<Profile> {
+  const { profile } = await request<{ profile: Profile }>("/api/me");
+  return profile;
+}
+
+/** Changes the current user's nickname and emoji. Resolves to the updated profile. */
+export async function updateMe(nickname: string, emoji: string): Promise<Profile> {
+  const { profile } = await request<{ profile: Profile }>("/api/me", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nickname, emoji }),
+  });
+  return profile;
+}
+
 /** Image types and limits for posting a meme. They match the backend's rules. */
 export const ACCEPTED_IMAGE_TYPES = [
   "image/png",

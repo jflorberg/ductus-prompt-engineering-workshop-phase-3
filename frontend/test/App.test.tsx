@@ -64,7 +64,10 @@ describe("App", () => {
 
     fireEvent.keyDown(window, { key: "ArrowRight" });
     await screen.findByRole("img", { name: second.caption });
-    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ memeId: first.id, direction: "like" });
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({
+      memeId: first.id,
+      direction: "like",
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "Likes" }));
     await screen.findByText("You have not liked any memes yet.");
@@ -123,7 +126,10 @@ describe("App", () => {
   it("shows an error message when the reset fails", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValueOnce(ok({ meme: null })).mockResolvedValueOnce({ ok: false, status: 500 }),
+      vi
+        .fn()
+        .mockResolvedValueOnce(ok({ meme: null }))
+        .mockResolvedValueOnce({ ok: false, status: 500 }),
     );
     render(<App />);
 
@@ -151,7 +157,10 @@ describe("App", () => {
   it("shows an error message when recording a swipe fails", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValueOnce(ok({ meme: first })).mockResolvedValueOnce({ ok: false, status: 500 }),
+      vi
+        .fn()
+        .mockResolvedValueOnce(ok({ meme: first }))
+        .mockResolvedValueOnce({ ok: false, status: 500 }),
     );
     render(<App />);
     await screen.findByRole("img", { name: first.caption });
@@ -174,7 +183,10 @@ describe("App", () => {
       fireEvent.click(screen.getByRole("button", { name: "Likes" }));
 
       expect(await screen.findByRole("heading", { name: "Your likes" })).toBeInTheDocument();
-      expect(screen.getByRole("img", { name: first.caption })).toHaveAttribute("src", first.imageUrl);
+      expect(screen.getByRole("img", { name: first.caption })).toHaveAttribute(
+        "src",
+        first.imageUrl,
+      );
       expect(screen.getByRole("img", { name: second.caption })).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Like" })).not.toBeInTheDocument();
       expect(fetchMock.mock.calls[1][0]).toBe("/api/likes");
@@ -182,7 +194,13 @@ describe("App", () => {
     });
 
     it("shows an empty message when nothing is liked", async () => {
-      vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(ok({ meme: first })).mockResolvedValueOnce(ok({ memes: [] })));
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValueOnce(ok({ meme: first }))
+          .mockResolvedValueOnce(ok({ memes: [] })),
+      );
       render(<App />);
       await screen.findByRole("img", { name: first.caption });
 
@@ -215,7 +233,10 @@ describe("App", () => {
     it("shows an error message when loading likes fails", async () => {
       vi.stubGlobal(
         "fetch",
-        vi.fn().mockResolvedValueOnce(ok({ meme: first })).mockResolvedValueOnce({ ok: false, status: 500 }),
+        vi
+          .fn()
+          .mockResolvedValueOnce(ok({ meme: first }))
+          .mockResolvedValueOnce({ ok: false, status: 500 }),
       );
       render(<App />);
       await screen.findByRole("img", { name: first.caption });

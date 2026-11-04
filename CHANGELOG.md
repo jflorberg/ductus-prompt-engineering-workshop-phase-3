@@ -6,6 +6,8 @@
 
 ### Added
 
+- Hot or not (Vision 001, Big Bet 3): every swipe gets a `swipedAt` timestamp (the swipe service takes an injectable clock), `listAll` on `SwipeRepository`, and `getMemeStats`, `getTrending` and `getSwipesPerMinute` on the service. `GET /api/memes/next` now also returns the meme's `stats`; new `GET /api/trending` (last hour, falling back to all time when fewer than 5 swipes) and `GET /api/pulse` (swipes per minute). Swipe files saved before timestamps load as old swipes
+- Frontend: a pink love meter on each card ("87% of people loved this", or "Be the first to rate this meme!"), a Trending tab with medals, and a live "memes swiped per minute" counter that refreshes every 5 seconds and keeps its last number when a refresh fails. Service, Supertest and Testing Library tests
 - Swipes survive a restart (Vision 001, Big Bet 1): `createFileSwipeRepository` saves them to a JSON file (`DATA_FILE`, default `data/swipes.json`) with atomic writes, and refuses to start on a corrupt file instead of overwriting it; the backend uses it by default. Docker sets `DATA_FILE=/app/data/swipes.json` on a `meme-data` volume. Tests for restart, reset and corrupt files
 - Pink and fun frontend theme: colour tokens, a pink gradient background, rounded cards and pill buttons with emoji, a pop-in animation for each new card (off with `prefers-reduced-motion`), and a "Your likes are saved" note
 

@@ -17,6 +17,8 @@ export class CorruptDataFileError extends Error {
   }
 }
 
+const EPOCH = new Date(0).toISOString();
+
 function load(filePath: string): Map<string, Swipe[]> {
   if (!existsSync(filePath)) return new Map();
   try {
@@ -24,7 +26,14 @@ function load(filePath: string): Map<string, Swipe[]> {
     if (data.version !== 1 || typeof data.swipesByUser !== "object" || data.swipesByUser === null) {
       throw new Error("unexpected file format");
     }
-    return new Map(Object.entries(data.swipesByUser));
+    return new Map(
+      Object.entries(data.swipesByUser).map(([userId, swipes]) => {
+        if (!Array.isArray(swipes)) throw new Error(`swipes of user ${userId} are not a list`);
+        // Swipes saved before timestamps existed get the epoch: they count for all-time stats,
+        // never as "recent".
+        return [userId, swipes.map((swipe) => ({ ...swipe, swipedAt: swipe.swipedAt ?? EPOCH }))];
+      }),
+    );
   } catch (err) {
     // Refuse to start rather than overwrite the file with an empty store: losing likes is the one thing we must not do.
     throw new CorruptDataFileError(filePath, err);
@@ -49,6 +58,7 @@ export function createFileSwipeRepository(filePath: string): SwipeRepository {
 
   return {
     listByUser: (userId) => [...(swipesByUser.get(userId) ?? [])],
+    listAll: () => [...swipesByUser.values()].flat(),
     add: (userId, swipe) => {
       swipesByUser.set(userId, [...(swipesByUser.get(userId) ?? []), swipe]);
       save();

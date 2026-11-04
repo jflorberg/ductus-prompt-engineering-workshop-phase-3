@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import type { Direction, Meme } from "./api";
+import type { Direction, Meme, MemeStats } from "./api";
+import { LoveMeter } from "./LoveMeter";
 
 /** Horizontal drag distance (in px) a release must pass to count as a swipe. */
 export const SWIPE_THRESHOLD = 100;
@@ -9,9 +10,11 @@ interface MemeCardProps {
   onSwipe: (direction: Direction) => void;
   /** Ignores drags, buttons and arrow keys, e.g. while a swipe request is in flight. */
   disabled?: boolean;
+  /** How much people love this meme. Nothing is shown when null or left out. */
+  stats?: MemeStats | null;
 }
 
-export function MemeCard({ meme, onSwipe, disabled = false }: MemeCardProps) {
+export function MemeCard({ meme, onSwipe, disabled = false, stats = null }: MemeCardProps) {
   const [offset, setOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
   const startX = useRef(0);
@@ -64,6 +67,7 @@ export function MemeCard({ meme, onSwipe, disabled = false }: MemeCardProps) {
       >
         <img src={meme.imageUrl} alt={meme.caption} draggable={false} />
         <figcaption>{meme.caption}</figcaption>
+        {stats && <LoveMeter stats={stats} />}
       </figure>
       <div className="actions">
         <button type="button" className="nope" disabled={disabled} onClick={() => onSwipe("nope")}>

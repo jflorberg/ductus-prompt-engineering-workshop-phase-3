@@ -17,10 +17,47 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return res.status === 204 ? (undefined as T) : res.json();
 }
 
-/** Resolves to null when the user has swiped every meme. */
-export async function fetchNextMeme(): Promise<Meme | null> {
-  const { meme } = await request<{ meme: Meme | null }>("/api/memes/next");
-  return meme;
+/** How much people love a meme, across all users. */
+export interface MemeStats {
+  likes: number;
+  nopes: number;
+  /** 0-100, or null when nobody has swiped the meme yet. */
+  lovePercent: number | null;
+}
+
+export interface NextMeme {
+  /** null when the user has swiped every meme. */
+  meme: Meme | null;
+  /** null when there is no meme, or when the backend sent no stats. */
+  stats: MemeStats | null;
+}
+
+export interface TrendingMeme extends MemeStats {
+  meme: Meme;
+}
+
+export interface Trending {
+  /** "hour" when ranked on the last hour, "all" when that hour was quiet and all time is used. */
+  window: "hour" | "all";
+  memes: TrendingMeme[];
+}
+
+export async function fetchNextMeme(): Promise<NextMeme> {
+  const { meme, stats } = await request<{ meme: Meme | null; stats?: MemeStats | null }>(
+    "/api/memes/next",
+  );
+  return { meme, stats: meme ? (stats ?? null) : null };
+}
+
+/** The most loved memes right now, across all users. */
+export async function fetchTrending(): Promise<Trending> {
+  return request<Trending>("/api/trending");
+}
+
+/** Swipes from all users in the last minute. */
+export async function fetchPulse(): Promise<number> {
+  const { swipesPerMinute } = await request<{ swipesPerMinute: number }>("/api/pulse");
+  return swipesPerMinute;
 }
 
 export async function sendSwipe(memeId: string, direction: Direction): Promise<void> {

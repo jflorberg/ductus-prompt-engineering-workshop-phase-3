@@ -25,7 +25,9 @@ describe("App", () => {
     render(<App />);
 
     await screen.findByRole("img", { name: first.caption });
-    expect(screen.getByText("Your likes are saved, even when the app restarts.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Your likes are saved, even when the app restarts."),
+    ).toBeInTheDocument();
   });
 
   it.each([

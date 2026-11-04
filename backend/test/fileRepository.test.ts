@@ -6,6 +6,8 @@ import { createMemeCatalog } from "../src/memes/catalog.js";
 import { CorruptDataFileError, createFileSwipeRepository } from "../src/swipes/fileRepository.js";
 import { createSwipeService } from "../src/swipes/service.js";
 
+const T = "2026-11-04T12:00:00.000Z";
+
 let dir: string;
 let file: string;
 
@@ -25,33 +27,60 @@ describe("file swipe repository", () => {
 
   it("keeps swipes after a restart (a new repository on the same file)", () => {
     const before = createFileSwipeRepository(file);
-    before.add("u1", { memeId: "a", direction: "like" });
-    before.add("u1", { memeId: "b", direction: "nope" });
-    before.add("u2", { memeId: "a", direction: "nope" });
+    before.add("u1", { memeId: "a", direction: "like", swipedAt: T });
+    before.add("u1", { memeId: "b", direction: "nope", swipedAt: T });
+    before.add("u2", { memeId: "a", direction: "nope", swipedAt: T });
 
     const after = createFileSwipeRepository(file);
 
     expect(after.listByUser("u1")).toEqual([
-      { memeId: "a", direction: "like" },
-      { memeId: "b", direction: "nope" },
+      { memeId: "a", direction: "like", swipedAt: T },
+      { memeId: "b", direction: "nope", swipedAt: T },
     ]);
-    expect(after.listByUser("u2")).toEqual([{ memeId: "a", direction: "nope" }]);
+    expect(after.listByUser("u2")).toEqual([{ memeId: "a", direction: "nope", swipedAt: T }]);
   });
 
   it("keeps a reset after a restart", () => {
     const before = createFileSwipeRepository(file);
-    before.add("u1", { memeId: "a", direction: "like" });
-    before.add("u2", { memeId: "a", direction: "like" });
+    before.add("u1", { memeId: "a", direction: "like", swipedAt: T });
+    before.add("u2", { memeId: "a", direction: "like", swipedAt: T });
     before.clearByUser("u1");
 
     const after = createFileSwipeRepository(file);
 
     expect(after.listByUser("u1")).toEqual([]);
-    expect(after.listByUser("u2")).toEqual([{ memeId: "a", direction: "like" }]);
+    expect(after.listByUser("u2")).toEqual([{ memeId: "a", direction: "like", swipedAt: T }]);
+  });
+
+  it("lists every user's swipes after a restart", () => {
+    const before = createFileSwipeRepository(file);
+    before.add("u1", { memeId: "a", direction: "like", swipedAt: T });
+    before.add("u2", { memeId: "b", direction: "nope", swipedAt: T });
+
+    expect(createFileSwipeRepository(file).listAll()).toHaveLength(2);
+  });
+
+  it("loads swipes saved before timestamps existed, as old swipes", () => {
+    const old = join(dir, "swipes.json");
+    writeFileSync(
+      old,
+      JSON.stringify({ version: 1, swipesByUser: { u1: [{ memeId: "a", direction: "like" }] } }),
+    );
+
+    expect(createFileSwipeRepository(old).listByUser("u1")).toEqual([
+      { memeId: "a", direction: "like", swipedAt: "1970-01-01T00:00:00.000Z" },
+    ]);
+  });
+
+  it("refuses a file where a user's swipes are not a list", () => {
+    const bad = join(dir, "swipes.json");
+    writeFileSync(bad, JSON.stringify({ version: 1, swipesByUser: { u1: "oops" } }));
+
+    expect(() => createFileSwipeRepository(bad)).toThrow(CorruptDataFileError);
   });
 
   it("does not leave a temporary file behind", () => {
-    createFileSwipeRepository(file).add("u1", { memeId: "a", direction: "like" });
+    createFileSwipeRepository(file).add("u1", { memeId: "a", direction: "like", swipedAt: T });
     expect(existsSync(`${file}.tmp`)).toBe(false);
   });
 

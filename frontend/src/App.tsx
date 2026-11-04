@@ -2,21 +2,28 @@ import { useCallback, useEffect, useState } from "react";
 import {
   fetchLikes,
   fetchNextMeme,
+  fetchTrending,
   resetSwipes,
   sendSwipe,
   type Direction,
   type Meme,
+  type MemeStats,
+  type Trending,
 } from "./api";
 import { EmptyState } from "./EmptyState";
 import { LikesView } from "./LikesView";
 import { MemeCard } from "./MemeCard";
+import { PulseCounter } from "./PulseCounter";
+import { TrendingView } from "./TrendingView";
 
-type View = "swipe" | "likes";
+type View = "swipe" | "likes" | "trending";
 
 export function App() {
   const [view, setView] = useState<View>("swipe");
   const [meme, setMeme] = useState<Meme | null>(null);
+  const [stats, setStats] = useState<MemeStats | null>(null);
   const [likes, setLikes] = useState<Meme[] | null>(null);
+  const [trending, setTrending] = useState<Trending | null>(null);
   const [loading, setLoading] = useState(true);
   const [swiping, setSwiping] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +31,9 @@ export function App() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      setMeme(await fetchNextMeme());
+      const next = await fetchNextMeme();
+      setMeme(next.meme);
+      setStats(next.stats);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -38,7 +47,9 @@ export function App() {
     let cancelled = false;
     fetchNextMeme()
       .then((next) => {
-        if (!cancelled) setMeme(next);
+        if (cancelled) return;
+        setMeme(next.meme);
+        setStats(next.stats);
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : "Unknown error");
@@ -57,6 +68,17 @@ export function App() {
     setError(null);
     try {
       setLikes(await fetchLikes());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    }
+  }
+
+  async function showTrending() {
+    setView("trending");
+    setTrending(null);
+    setError(null);
+    try {
+      setTrending(await fetchTrending());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     }
@@ -115,14 +137,25 @@ export function App() {
         >
           Likes
         </button>
+        <button
+          type="button"
+          aria-current={view === "trending" ? "page" : undefined}
+          onClick={showTrending}
+        >
+          Trending
+        </button>
       </nav>
       {error && <p role="alert">Something went wrong: {error}. Is the backend running?</p>}
       {view === "likes" && !error && (likes ? <LikesView memes={likes} /> : <p>Loading…</p>)}
+      {view === "trending" && <PulseCounter />}
+      {view === "trending" &&
+        !error &&
+        (trending ? <TrendingView trending={trending} /> : <p>Loading…</p>)}
       {view === "swipe" && loading && !error && <p>Loading…</p>}
       {view === "swipe" && !loading && !error && !meme && <EmptyState onReset={reset} />}
       {view === "swipe" && meme && (
         <div className="swipe-view">
-          <MemeCard key={meme.id} meme={meme} onSwipe={swipe} disabled={swiping} />
+          <MemeCard key={meme.id} meme={meme} stats={stats} onSwipe={swipe} disabled={swiping} />
         </div>
       )}
       <p className="saved-note">

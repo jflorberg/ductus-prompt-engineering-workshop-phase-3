@@ -54,3 +54,7 @@ Run `npm test` and `npm run build` before you finish a change.
 - Tests go in the workspace's `test/` folder as `<name>.test.ts(x)` and test behavior through the public interface: service tests without HTTP, endpoint tests with Supertest (see `backend/test/app.test.ts`), component tests with Testing Library. Add or update tests with every change.
 - Errors from the API are JSON `{ "error": "..." }`.
 - Do not add dependencies or tooling (such as a linter) without a reason in the task.
+
+# Roadmap
+
+Read ROADMAP.md to understand what to to under resource constraints and time constraints

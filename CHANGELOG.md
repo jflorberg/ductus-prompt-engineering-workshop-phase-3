@@ -6,10 +6,14 @@
 
 ### Added
 
+<<<<<<< Updated upstream
 - Profiles (Vision 002, Big Bet 1 "Who am I?"): every user gets a profile with a nickname and an emoji, created automatically with a random nickname ("Curious Otter") on the first visit, so there is no sign-up step. The existing anonymous user id stays the key, so nobody loses their swipes or likes. A profile has a separate public id, so the secret user id is never shown to other users
 - `GET /api/me` and `PUT /api/me` (nickname 1–30 characters, exactly one emoji), a profile service (`backend/src/profiles/service.ts`) and a `ProfileRepository` with in-memory and SQLite implementations; with `DATABASE_FILE` set, profiles are stored in the same SQLite file as the swipes
 - A "Me" tab (`ProfileView`) to change the nickname and pick an emoji, typed `fetchMe()` and `updateMe()` in the API client, and service, repository, Supertest and Testing Library tests
 
+=======
+- Clap login: when the site opens, a pink lock screen asks you to clap three times. Claps are heard through the microphone with the Web Audio API (`microphone.ts`, no dependency, nothing recorded or sent) and counted by a pure `clapDetector.ts` (a loud peak after quiet; echoes and long noises count once; a pause over 1.5 s starts over). Without a microphone, tap the Clap button three times. `ClapGate` wraps the app in `main.tsx`; the login lasts for the browser session (`isLoggedIn`, `logIn` and `logOut` in `identity.ts`, sessionStorage) and Log out locks it again. It is a playful gate, not an account. Detector and Testing Library tests with a faked microphone
+>>>>>>> Stashed changes
 - Feel the swipe (Big Bet 4): a LIKE or NOPE stamp that fades in while dragging and is stamped on release, button click or arrow key; the swiped card flies off the screen (300 ms) before the swipe is sent, and the next card arrives with a bounce. CSS only, and no animation when the user prefers reduced motion
 - Celebrations with CSS fireworks (`Celebration` component, explosions of sparks around the screen): on every 3 likes in a row, and on every 100th swipe in this browser (counted in localStorage by `swipeCount.ts`). The fireworks are left out when the user prefers reduced motion
 - Testing Library tests for the stamp, the fly-out, the streak, the 100th swipe and the celebration

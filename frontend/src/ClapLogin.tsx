@@ -99,11 +99,7 @@ export function ClapLogin({ onLogIn }: ClapLoginProps) {
       </h1>
       <section className="clap-card" aria-labelledby="clap-title">
         <h2 id="clap-title">Clap three times to log in</h2>
-        <div
-          className="clap-hands"
-          role="img"
-          aria-label={`${claps} of ${REQUIRED_CLAPS} claps`}
-        >
+        <div className="clap-hands" role="img" aria-label={`${claps} of ${REQUIRED_CLAPS} claps`}>
           {Array.from({ length: REQUIRED_CLAPS }, (_, index) => (
             <span key={index} className={`clap-hand${index < claps ? " lit" : ""}`}>
               👏
